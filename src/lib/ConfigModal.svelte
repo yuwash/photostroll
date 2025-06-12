@@ -1,0 +1,304 @@
+<script>
+  let fileInputRef;
+  let thumbImgWidth = 150;
+  let thumbImgHeight = 150;;
+
+  // Exported props are now the Svelte store objects themselves
+  export let handleExplore;
+  export let handleFileChange;
+  export let imageSrc; // This is now the writable store
+  export let photoOriginalDimensions; // This is now the writable store
+  export let previewRectStyle; // This is now the writable store
+  export let zoomLevel; // This is now the writable store
+  export let speedLevel; // This is now the writable store
+  export let canExplore; // This is now the writable store
+  export let strollInstance; // NEW: Accept strollInstance as a prop
+
+  let animationFrameId; // ID for requestAnimationFrame
+  let lastTickTime; // Timestamp of the last animation frame
+
+  // Derive isPhotoLoaded from the imageSrc store
+  // The '$' prefix here correctly auto-subscribes to the imageSrc store prop
+  $: isPhotoLoaded = $imageSrc && $imageSrc.length > 0;
+
+  export const MIN_ZOOM = 1.5;
+  export const MAX_ZOOM = 15;
+  export const MIN_SPEED = 0.1;
+  export const MAX_SPEED = 1;
+
+  const handleFileChangeInternal = (event) => {
+    if(handleFileChange) {
+      handleFileChange(event);
+    }
+  }
+
+  const handleExploreInternal = (event) => {
+    if(handleExplore) {
+      handleExplore(event);
+    }
+  }
+
+  // NEW: Reactive block to calculate and update previewRectStyle
+  $: {
+    if ($imageSrc && $photoOriginalDimensions && strollInstance) {
+      // Use current window dimensions as the hypothetical viewport for preview calculation.
+      // This simulates the full-screen environment for the Stroll instance.
+      const hypotheticalViewport = {
+        width: window.innerWidth,
+        height: window.innerHeight
+      };
+
+      // Temporarily update the strollInstance with current modal settings and hypothetical viewport.
+      // This will affect the strollInstance's internal state, but it will be corrected
+      // when StrollComponent mounts and calls updateSettings with its actual dimensions.
+      strollInstance.updateSettings(
+        hypotheticalViewport,
+        $zoomLevel,
+        $speedLevel,
+        $photoOriginalDimensions
+      );
+
+      const boundingBox = strollInstance.getBoundingBox();
+      // The viewport size used by Stroll for this calculation is now hypotheticalViewport
+      const strollViewportSize = hypotheticalViewport;
+
+      const originalAspectRatio = $photoOriginalDimensions.width / $photoOriginalDimensions.height;
+      thumbImgHeight = thumbImgWidth / originalAspectRatio;
+
+      // Calculate the single scale factor from the full-screen scaled image dimensions
+      // to the thumbnail image dimensions.
+      // Since both the Stroll class and the thumbnail maintain aspect ratio,
+      // thumbImgWidth / boundingBox.width is equal to thumbImgHeight / boundingBox.height.
+      const scaleFactor = boundingBox.width > 0 ? thumbImgWidth / boundingBox.width : 0;
+
+      // Calculate rectangle dimensions and position relative to the thumbnail image
+      // boundingBox.x and boundingBox.y are the image's top-left relative to the viewport.
+      // So, -boundingBox.x and -boundingBox.y are the viewport's top-left relative to the image.
+      const rectWidth = strollViewportSize.width * scaleFactor;
+      const rectHeight = strollViewportSize.height * scaleFactor;
+      const rectLeft = -boundingBox.x * scaleFactor;
+      const rectTop = -boundingBox.y * scaleFactor;
+
+      previewRectStyle.set({
+        position: 'absolute',
+        left: `${rectLeft}px`,
+        top: `${rectTop}px`,
+        width: `${rectWidth}px`,
+        height: `${rectHeight}px`,
+        border: '1px solid red',
+        boxSizing: 'border-box', // Ensure border is included in width/height
+        pointerEvents: 'none', // Make sure it doesn't interfere with clicks
+        zIndex: 10, // Ensure it's above the image
+      });
+    } else {
+      previewRectStyle.set({}); // Clear style if no image or stroll instance
+    }
+  }
+
+  /**
+   * The main animation loop function for the preview rectangle.
+   * It calculates the delta time, updates the Stroll instance, and updates the previewRectStyle.
+   * @param {DOMHighResTimeStamp} currentTime - The current time provided by requestAnimationFrame.
+   */
+  function tick(currentTime) {
+    if (!lastTickTime) {
+      lastTickTime = currentTime; // Initialize lastTickTime on the first frame
+    }
+    const deltaTimeInSeconds = (currentTime - lastTickTime) / 1000; // Convert milliseconds to seconds
+    lastTickTime = currentTime; // Update for the next frame
+
+    if ($imageSrc && $photoOriginalDimensions && strollInstance) {
+      // Use current window dimensions as the hypothetical viewport for preview calculation.
+      // This simulates the full-screen environment for the Stroll instance.
+      const hypotheticalViewport = {
+        width: window.innerWidth,
+        height: window.innerHeight
+      };
+
+      // Temporarily update the strollInstance with current modal settings and hypothetical viewport.
+      // This will affect the strollInstance's internal state, but it will be corrected
+      // when StrollComponent mounts and calls updateSettings with its actual dimensions.
+      strollInstance.updateSettings(
+        hypotheticalViewport,
+        $zoomLevel,
+        $speedLevel,
+        $photoOriginalDimensions
+      );
+
+      strollInstance.tick(deltaTimeInSeconds);
+
+      const boundingBox = strollInstance.getBoundingBox();
+      // The viewport size used by Stroll for this calculation is now hypotheticalViewport
+      const strollViewportSize = hypotheticalViewport;
+
+      const thumbnailContainerSize = 150;
+      const originalAspectRatio = $photoOriginalDimensions.width / $photoOriginalDimensions.height;
+
+      if (originalAspectRatio > 1) { // Wider than tall
+        thumbImgWidth = thumbnailContainerSize;
+        thumbImgHeight = thumbnailContainerSize / originalAspectRatio;
+      } else { // Taller than wide, or square
+        thumbImgHeight = thumbnailContainerSize;
+        thumbImgWidth = thumbnailContainerSize * originalAspectRatio;
+      }
+
+      // Calculate the single scale factor from the full-screen scaled image dimensions
+      // to the thumbnail image dimensions.
+      // Since both the Stroll class and the thumbnail maintain aspect ratio,
+      // thumbImgWidth / boundingBox.width is equal to thumbImgHeight / boundingBox.height.
+      const scaleFactor = boundingBox.width > 0 ? thumbImgWidth / boundingBox.width : 0;
+
+      // Calculate rectangle dimensions and position relative to the thumbnail image
+      // boundingBox.x and boundingBox.y are the image's top-left relative to the viewport.
+      // So, -boundingBox.x and -boundingBox.y are the viewport's top-left relative to the image.
+      const rectWidth = strollViewportSize.width * scaleFactor;
+      const rectHeight = strollViewportSize.height * scaleFactor;
+      const rectLeft = -boundingBox.x * scaleFactor;
+      const rectTop = -boundingBox.y * scaleFactor;
+
+      // Calculate offsets for centering the thumbnail image within its 150x150 container
+      const offsetX = (thumbnailContainerSize - thumbImgWidth) / 2;
+      const offsetY = (thumbnailContainerSize - thumbImgHeight) / 2;
+
+      previewRectStyle.set({
+        position: 'absolute',
+        left: `${rectLeft + offsetX}px`,
+        top: `${rectTop + offsetY}px`,
+        width: `${rectWidth}px`,
+        height: `${rectHeight}px`,
+        border: '1px solid red',
+        boxSizing: 'border-box', // Ensure border is included in width/height
+        pointerEvents: 'none', // Make sure it doesn't interfere with clicks
+        zIndex: 10, // Ensure it's above the image
+      });
+    } else {
+      previewRectStyle.set({}); // Clear style if no image or stroll instance
+    }
+
+    animationFrameId = requestAnimationFrame(tick); // Request the next frame
+  }
+
+  $: {
+    if ($imageSrc && $photoOriginalDimensions && strollInstance) {
+      // Start animation
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(tick);
+      }
+    } else {
+      // Stop animation
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      previewRectStyle.set({}); // Clear style if no image or stroll instance
+    }
+  }
+</script>
+
+<style>
+.width-100 {
+  /* Although this is a foundation class, somehow it doesn’t work without this. */
+  width: 100%;
+}
+</style>
+
+<div class="grid-x align-center">
+  <div class="cell small-12 medium-8 large-6">
+    <div class="card">
+      <div class="card-divider">
+        <h1 class="text-center">Photostroll</h1>
+      </div>
+      
+      <div class="card-section grid-x align-center">
+        <div
+          class="thumbnail"
+          style="width: {thumbImgWidth}px; height: {thumbImgHeight}px; overflow: hidden; position: relative;"
+        >
+          {#if $imageSrc && $photoOriginalDimensions}
+            <img
+              src={$imageSrc}
+              alt="Selected photo thumbnail"
+              style="width: 100%; height: 100%; object-fit: contain;"
+              data-ai-hint="abstract photo"
+            />
+          {:else}
+            <svg aria-label="No photo selected" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="overflow: visible;">
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%" gradientUnits="percent">
+                <stop offset="0%" style="stop-color:#1779ba;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#e6e6e6;stop-opacity:1" />
+              </linearGradient>
+              <rect x="0" y="0" width="24" height="24" fill="url(#gradient)" stroke="none" stroke-width="0" />
+            </svg>
+          {/if}
+          {#if $imageSrc && $photoOriginalDimensions && Object.keys($previewRectStyle).length > 0}
+            <div
+              style={Object.entries($previewRectStyle).map(([key, value]) => `${key}:${value}`).join(';')}
+              aria-hidden="true"
+            />
+          {/if}
+        </div>
+      </div>
+
+      <div class="card-section">
+        <label for="zoom-slider" class="flex-container align-middle margin-bottom-1">
+          <span class="margin-right-1">🔎</span> Zoom Level: {$zoomLevel}x
+        </label>
+        <input
+          type="range"
+          id="zoom-slider"
+          min={MIN_ZOOM}
+          max={MAX_ZOOM}
+          step={0.5}
+          bind:value={$zoomLevel}
+          class="width-100"
+          on:input={(e) => zoomLevel.set(parseFloat(e.target.value))}
+          aria-label={`Zoom level ${$zoomLevel}x`}
+        />
+      </div>
+
+      <div class="card-section">
+        <label for="speed-slider" class="flex-container align-middle margin-bottom-1">
+          <span class="margin-right-1">⚡</span> Speed: {$speedLevel.toFixed(1)} (screen widths/sec)
+        </label>
+        <input
+          type="range"
+          id="speed-slider"
+          min={MIN_SPEED}
+          max={MAX_SPEED}
+          step={0.1}
+          bind:value={$speedLevel}
+          class="width-100"
+          on:input={(e) => speedLevel.set(parseFloat(e.target.value))}
+          aria-label={`Movement speed ${$speedLevel.toFixed(1)} screen widths per second`}
+        />
+      </div>
+
+      <div class="card-section">
+        <div class="button-group expanded">
+          <button
+            on:click={() => fileInputRef.click()}
+            class={['button', ...(isPhotoLoaded ? ['hollow'] : [])]}
+            aria-label={isPhotoLoaded ? "Change photo" : "Choose photo"}
+          >
+            <span class="margin-right-1">📸</span> {isPhotoLoaded ? "Change Photo" : "Choose Photo"}
+          </button>
+          <button
+            on:click={handleExploreInternal}
+            class="button"
+            aria-label="Explore photo"
+            disabled={!$canExplore}
+          >
+            <span class="margin-right-1">▶</span> Explore
+          </button>
+        </div>
+      </div>
+      <input
+        type="file"
+        bind:this={fileInputRef}
+        on:change={handleFileChangeInternal}
+        accept="image/*"
+        class="hide"
+      />
+    </div>
+  </div>
+</div>
