@@ -14,7 +14,6 @@
   // Define writable stores for the application's state
   const imageSrc = writable(null);
   const photoOriginalDimensions = writable(null); // e.g., { width: 0, height: 0 }
-  const previewRectStyle = writable({}); // e.g., { top: '0px', left: '0px', width: '0px', height: '0px', border: '1px solid red' }
   const zoomLevel = writable(1.5);
   const speedLevel = writable(0.1);
   const canExplore = writable(false);
@@ -123,7 +122,6 @@
   <ConfigModal
     imageSrc={imageSrc}
     photoOriginalDimensions={photoOriginalDimensions}
-    previewRectStyle={previewRectStyle}
     zoomLevel={zoomLevel}
     speedLevel={speedLevel}
     canExplore={canExplore}

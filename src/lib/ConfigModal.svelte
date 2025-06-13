@@ -2,13 +2,13 @@
   let fileInputRef;
   let thumbImgWidth = 150;
   let thumbImgHeight = 150;
+  let viewportRect = { x: 0, y: 0, width: 0, height: 0 };
 
   // Exported props are now the Svelte store objects themselves
   export let handleExplore;
   export let handleFileChange;
   export let imageSrc; // This is now the writable store
   export let photoOriginalDimensions; // This is now the writable store
-  export let previewRectStyle; // This is now the writable store
   export let zoomLevel; // This is now the writable store
   export let speedLevel; // This is now the writable store
   export let canExplore; // This is now the writable store
@@ -38,9 +38,20 @@
     }
   }
 
-  // NEW: Reactive block to calculate and update previewRectStyle
-  $: {
+  /**
+   * The main animation loop function for the preview rectangle.
+   * It calculates the delta time, updates the Stroll instance, and updates the viewportRect.
+   * @param {DOMHighResTimeStamp} currentTime - The current time provided by requestAnimationFrame.
+   */
+  function tick(currentTime) {
+    if (!lastTickTime) {
+      lastTickTime = currentTime; // Initialize lastTickTime on the first frame
+    }
+    const deltaTimeInSeconds = (currentTime - lastTickTime) / 1000; // Convert milliseconds to seconds
+    lastTickTime = currentTime; // Update for the next frame
+
     if ($imageSrc && 0 < $photoOriginalDimensions.width && 0 < $photoOriginalDimensions.height && strollInstance) {
+      strollInstance.tick(deltaTimeInSeconds);
       // Use current window dimensions as the hypothetical viewport for preview calculation.
       // This simulates the full-screen environment for the Stroll instance.
       const strollViewportSize = {
@@ -60,103 +71,15 @@
 
       const viewportBox = strollInstance.getViewportInOriginalImageScale();
       const scaleFactor = thumbImgWidth / $photoOriginalDimensions.width;
-      const rect = {
+      viewportRect = {
         x: viewportBox.x * scaleFactor,
         y: viewportBox.y * scaleFactor,
         width: viewportBox.width * scaleFactor,
         height: viewportBox.height * scaleFactor
       };
       thumbImgHeight = $photoOriginalDimensions.height * scaleFactor;
-
-      previewRectStyle.set({
-        position: 'absolute',
-        left: `${rect.x}px`,
-        top: `${rect.y}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-        border: '1px solid red',
-        boxSizing: 'border-box', // Ensure border is included in width/height
-        pointerEvents: 'none', // Make sure it doesn't interfere with clicks
-        zIndex: 10, // Ensure it's above the image
-      });
     } else {
-      previewRectStyle.set({}); // Clear style if no image or stroll instance
-    }
-  }
-
-  /**
-   * The main animation loop function for the preview rectangle.
-   * It calculates the delta time, updates the Stroll instance, and updates the previewRectStyle.
-   * @param {DOMHighResTimeStamp} currentTime - The current time provided by requestAnimationFrame.
-   */
-  function tick(currentTime) {
-    if (!lastTickTime) {
-      lastTickTime = currentTime; // Initialize lastTickTime on the first frame
-    }
-    const deltaTimeInSeconds = (currentTime - lastTickTime) / 1000; // Convert milliseconds to seconds
-    lastTickTime = currentTime; // Update for the next frame
-
-    if ($imageSrc && $photoOriginalDimensions && strollInstance) {
-      // Use current window dimensions as the hypothetical viewport for preview calculation.
-      // This simulates the full-screen environment for the Stroll instance.
-      const hypotheticalViewport = {
-        width: window.innerWidth,
-        height: window.innerHeight
-      };
-
-      // Temporarily update the strollInstance with current modal settings and hypothetical viewport.
-      // This will affect the strollInstance's internal state, but it will be corrected
-      // when StrollComponent mounts and calls updateSettings with its actual dimensions.
-      strollInstance.updateSettings(
-        hypotheticalViewport,
-        $zoomLevel,
-        $speedLevel,
-        $photoOriginalDimensions
-      );
-
-      strollInstance.tick(deltaTimeInSeconds);
-
-      const boundingBox = strollInstance.getBoundingBox();
-      // The viewport size used by Stroll for this calculation is now hypotheticalViewport
-      const strollViewportSize = hypotheticalViewport;
-
-      const thumbnailContainerSize = 150;
-      const originalAspectRatio = $photoOriginalDimensions.width / $photoOriginalDimensions.height;
-
-      thumbImgWidth = thumbImgWidth;
-      thumbImgHeight = thumbImgWidth / originalAspectRatio;
-
-      // Calculate the single scale factor from the full-screen scaled image dimensions
-      // to the thumbnail image dimensions.
-      // Since both the Stroll class and the thumbnail maintain aspect ratio,
-      // thumbImgWidth / boundingBox.width is equal to thumbImgHeight / boundingBox.height.
-      const scaleFactor = boundingBox.width > 0 ? thumbImgWidth / boundingBox.width : 0;
-
-      // Calculate rectangle dimensions and position relative to the thumbnail image
-      // boundingBox.x and boundingBox.y are the image's top-left relative to the viewport.
-      // So, -boundingBox.x and -boundingBox.y are the viewport's top-left relative to the image.
-      const rectWidth = strollViewportSize.width * scaleFactor;
-      const rectHeight = strollViewportSize.height * scaleFactor;
-      const rectLeft = -boundingBox.x * scaleFactor;
-      const rectTop = -boundingBox.y * scaleFactor;
-
-      // Calculate offsets for centering the thumbnail image within its 150x150 container
-      const offsetX = (thumbnailContainerSize - thumbImgWidth) / 2;
-      const offsetY = (thumbnailContainerSize - thumbImgHeight) / 2;
-
-      previewRectStyle.set({
-        position: 'absolute',
-        left: `${rectLeft + offsetX}px`,
-        top: `${rectTop + offsetY}px`,
-        width: `${rectWidth}px`,
-        height: `${rectHeight}px`,
-        border: '1px solid red',
-        boxSizing: 'border-box', // Ensure border is included in width/height
-        pointerEvents: 'none', // Make sure it doesn't interfere with clicks
-        zIndex: 10, // Ensure it's above the image
-      });
-    } else {
-      previewRectStyle.set({}); // Clear style if no image or stroll instance
+      viewportRect = { x: 0, y: 0, width: 0, height: 0 };
     }
 
     animationFrameId = requestAnimationFrame(tick); // Request the next frame
@@ -174,7 +97,7 @@
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
       }
-      previewRectStyle.set({}); // Clear style if no image or stroll instance
+      viewportRect = { x: 0, y: 0, width: 0, height: 0 };
     }
   }
 </script>
@@ -183,6 +106,13 @@
 .width-100 {
   /* Although this is a foundation class, somehow it doesn’t work without this. */
   width: 100%;
+}
+.viewport-rect {
+  position: absolute;
+  border: 1px solid red;
+  boxSizing: border-box; /* Ensure border is included in width/height */
+  pointerEvents: none; /* Make sure it doesn't interfere with clicks */
+  zIndex: 10; /* Ensure it's above the image */
 }
 </style>
 
@@ -214,10 +144,11 @@
               <rect x="0" y="0" width="24" height="24" fill="url(#gradient)" stroke="none" stroke-width="0" />
             </svg>
           {/if}
-          {#if $imageSrc && $photoOriginalDimensions && Object.keys($previewRectStyle).length > 0}
+          {#if $imageSrc && $photoOriginalDimensions && viewportRect.width > 0}
             <div
-              style={Object.entries($previewRectStyle).map(([key, value]) => `${key}:${value}`).join(';')}
+              class="viewport-rect"
               aria-hidden="true"
+              style="left: {viewportRect.x}px; top: {viewportRect.y}px; width: {viewportRect.width}px; height: {viewportRect.height}px;"
             />
           {/if}
         </div>
