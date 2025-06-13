@@ -305,6 +305,20 @@ export class Stroll {
       height: this.scaledSize.height,
     };
   }
+
+  public getViewportInOriginalImageScale(): BoundingBox {
+    const scaleX = this.originalImageSize.width / this.scaledSize.width;
+    const scaleY = this.originalImageSize.height / this.scaledSize.height;
+
+    const originalX = -this.currentPosition.x * scaleX;
+    const originalY = -this.currentPosition.y * scaleY;
+    const originalWidth = this.viewportSize.width * scaleX;
+    const originalHeight = this.viewportSize.height * scaleY;
+
+    // Ensure coordinates are within original image bounds (should be the case if currentPosition is within bounds)
+    // And dimensions are non-negative (should also be the case)
+    return { x: originalX, y: originalY, width: originalWidth, height: originalHeight };
+  }
   
   public isPannable(): boolean {
     const pannableX = this.scaledSize.width > this.viewportSize.width + 1e-3; // Add tolerance

@@ -1,7 +1,7 @@
 <script>
   let fileInputRef;
   let thumbImgWidth = 150;
-  let thumbImgHeight = 150;;
+  let thumbImgHeight = 150;
 
   // Exported props are now the Svelte store objects themselves
   export let handleExplore;
@@ -40,10 +40,10 @@
 
   // NEW: Reactive block to calculate and update previewRectStyle
   $: {
-    if ($imageSrc && $photoOriginalDimensions && strollInstance) {
+    if ($imageSrc && 0 < $photoOriginalDimensions.width && 0 < $photoOriginalDimensions.height && strollInstance) {
       // Use current window dimensions as the hypothetical viewport for preview calculation.
       // This simulates the full-screen environment for the Stroll instance.
-      const hypotheticalViewport = {
+      const strollViewportSize = {
         width: window.innerWidth,
         height: window.innerHeight
       };
@@ -52,39 +52,28 @@
       // This will affect the strollInstance's internal state, but it will be corrected
       // when StrollComponent mounts and calls updateSettings with its actual dimensions.
       strollInstance.updateSettings(
-        hypotheticalViewport,
+        strollViewportSize,
         $zoomLevel,
         $speedLevel,
         $photoOriginalDimensions
       );
 
-      const boundingBox = strollInstance.getBoundingBox();
-      // The viewport size used by Stroll for this calculation is now hypotheticalViewport
-      const strollViewportSize = hypotheticalViewport;
-
-      const originalAspectRatio = $photoOriginalDimensions.width / $photoOriginalDimensions.height;
-      thumbImgHeight = thumbImgWidth / originalAspectRatio;
-
-      // Calculate the single scale factor from the full-screen scaled image dimensions
-      // to the thumbnail image dimensions.
-      // Since both the Stroll class and the thumbnail maintain aspect ratio,
-      // thumbImgWidth / boundingBox.width is equal to thumbImgHeight / boundingBox.height.
-      const scaleFactor = boundingBox.width > 0 ? thumbImgWidth / boundingBox.width : 0;
-
-      // Calculate rectangle dimensions and position relative to the thumbnail image
-      // boundingBox.x and boundingBox.y are the image's top-left relative to the viewport.
-      // So, -boundingBox.x and -boundingBox.y are the viewport's top-left relative to the image.
-      const rectWidth = strollViewportSize.width * scaleFactor;
-      const rectHeight = strollViewportSize.height * scaleFactor;
-      const rectLeft = -boundingBox.x * scaleFactor;
-      const rectTop = -boundingBox.y * scaleFactor;
+      const viewportBox = strollInstance.getViewportInOriginalImageScale();
+      const scaleFactor = thumbImgWidth / $photoOriginalDimensions.width;
+      const rect = {
+        x: viewportBox.x * scaleFactor,
+        y: viewportBox.y * scaleFactor,
+        width: viewportBox.width * scaleFactor,
+        height: viewportBox.height * scaleFactor
+      };
+      thumbImgHeight = $photoOriginalDimensions.height * scaleFactor;
 
       previewRectStyle.set({
         position: 'absolute',
-        left: `${rectLeft}px`,
-        top: `${rectTop}px`,
-        width: `${rectWidth}px`,
-        height: `${rectHeight}px`,
+        left: `${rect.x}px`,
+        top: `${rect.y}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
         border: '1px solid red',
         boxSizing: 'border-box', // Ensure border is included in width/height
         pointerEvents: 'none', // Make sure it doesn't interfere with clicks
@@ -134,13 +123,8 @@
       const thumbnailContainerSize = 150;
       const originalAspectRatio = $photoOriginalDimensions.width / $photoOriginalDimensions.height;
 
-      if (originalAspectRatio > 1) { // Wider than tall
-        thumbImgWidth = thumbnailContainerSize;
-        thumbImgHeight = thumbnailContainerSize / originalAspectRatio;
-      } else { // Taller than wide, or square
-        thumbImgHeight = thumbnailContainerSize;
-        thumbImgWidth = thumbnailContainerSize * originalAspectRatio;
-      }
+      thumbImgWidth = thumbImgWidth;
+      thumbImgHeight = thumbImgWidth / originalAspectRatio;
 
       // Calculate the single scale factor from the full-screen scaled image dimensions
       // to the thumbnail image dimensions.
