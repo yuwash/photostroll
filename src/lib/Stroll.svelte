@@ -113,8 +113,8 @@
         // Immediately update the bounding box after settings change to reflect new state
         currentBoundingBox.set(strollInstance.getBoundingBox());
         imageOffset.set({
-          x: $currentBoundingBox.x * $viewportSize.width / $currentBoundingBox.width,
-          y: $currentBoundingBox.y * $viewportSize.height / $currentBoundingBox.height
+          x: $currentBoundingBox.x,
+          y: $currentBoundingBox.y,
         });
       }
 
@@ -151,6 +151,8 @@
 
   .stroll-image {
     position: absolute; /* Positioned relative to the stroll-container */
+    left: 0;
+    top: 0;
     /* The transform property will be dynamically set via the style attribute */
     will-change: transform; /* Hint to the browser for performance optimization */
     image-rendering: optimize-quality; /* Adjust as needed: auto, crisp-edges, pixelated */
