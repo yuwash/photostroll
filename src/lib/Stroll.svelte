@@ -143,9 +143,6 @@
     height: 100vh; /* Full viewport height */
     overflow: hidden; /* Crucial to hide parts of the image outside the viewport */
     background-color: black; /* Default background color */
-    display: flex;
-    justify-content: center;
-    align-items: center;
     z-index: 999; /* Ensure it's above other content */
   }
 
@@ -185,7 +182,7 @@
       alt="Strolling photo"
       class="stroll-image"
       style="
-        height: {100*$zoomLevel}vw;
+        height: {currentBoundingBox.height}px;
         width: {100*$zoomLevel}vw;
         max-width: initial;
         transform: translate({$imageOffset.x}px, {$imageOffset.y}px);
