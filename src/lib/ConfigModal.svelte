@@ -108,7 +108,7 @@
   width: 100%;
 }
 .viewport-rect {
-  position: absolute;
+  position: relative;
   border: 1px solid red;
   boxSizing: border-box; /* Ensure border is included in width/height */
   pointerEvents: none; /* Make sure it doesn't interfere with clicks */
@@ -126,13 +126,12 @@
       <div class="card-section grid-x align-center">
         <div
           class="thumbnail"
-          style="width: {thumbImgWidth}px; height: {thumbImgHeight}px; overflow: hidden; position: relative;"
         >
           {#if $imageSrc && $photoOriginalDimensions}
             <img
               src={$imageSrc}
               alt="Selected photo thumbnail"
-              style="width: 100%; height: 100%; object-fit: contain;"
+              style="width: {thumbImgWidth}px; height: {thumbImgHeight}px; overflow: hidden; position: relative;"
               data-ai-hint="abstract photo"
             />
           {:else}
@@ -148,7 +147,7 @@
             <div
               class="viewport-rect"
               aria-hidden="true"
-              style="left: {viewportRect.x}px; top: {viewportRect.y}px; width: {viewportRect.width}px; height: {viewportRect.height}px;"
+              style="left: {viewportRect.x}px; top: {viewportRect.y}px; width: {viewportRect.width}px; height: {viewportRect.height}px; transform: translateY({-thumbImgHeight}px); margin-bottom: -{viewportRect.height}px;"
             />
           {/if}
         </div>
