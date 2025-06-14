@@ -5,6 +5,7 @@
   // Foundation needs to be initialized after the DOM is ready
   // and jQuery is available.
 
+  import { base } from '$app/paths';
   import { writable } from 'svelte/store';
   import { onMount, onDestroy } from 'svelte';
   import ConfigModal from '../lib/ConfigModal.svelte';
@@ -12,8 +13,9 @@
   import { Stroll } from '../lib/stroll';
 
   // Define writable stores for the application's state
+  const placeholderUrl = base + "/placeholder.svg";
   const imageSrc = writable(null);
-  const photoOriginalDimensions = writable(null); // e.g., { width: 0, height: 0 }
+  const photoOriginalDimensions = writable({ width: 150, height: 150 });
   const zoomLevel = writable(1.5);
   const speedLevel = writable(0.1);
   const canExplore = writable(false);
@@ -23,8 +25,10 @@
   let strollInstance = null;
 
   // Function to handle file input change
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
+  const handleFileChange = (event) => loadFile(event.target.files[0]);
+
+  const loadFile = (file) => {
+    console.log(file);
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -32,6 +36,7 @@
         const img = new Image();
         img.onload = () => {
           photoOriginalDimensions.set({ width: img.width, height: img.height });
+          console.log($photoOriginalDimensions);
           canExplore.set(true); // Enable explore once photo is loaded
 
           // Instantiate Stroll object here
@@ -88,12 +93,22 @@
   onMount(() => {
     if (typeof window !== 'undefined') {
       // Initialize Foundation after the component is mounted and jQuery is ready
-      jQuery(document).foundation();
+      //jQuery(document).foundation();
 
       document.addEventListener('fullscreenchange', handleFullscreenChange);
       document.addEventListener('webkitfullscreenchange', handleFullscreenChange); // For Safari
       document.addEventListener('mozfullscreenchange', handleFullscreenChange);    // For Firefox
       document.addEventListener('MSFullscreenChange', handleFullscreenChange);     // For IE/Edge
+
+      if (placeholderUrl) {
+        fetch(placeholderUrl)
+          .then(response => response.blob())
+          .then(blob => {
+            const file = new File([blob], "placeholder.svg", { type: "image/svg+xml" });
+            loadFile(file);
+          })
+          .catch(error => console.error("Error loading placeholder image:", error));
+      }
     }
   });
 

@@ -1,4 +1,5 @@
 <script>
+  import { base } from '$app/paths';
   let fileInputRef;
   let thumbImgWidth = 150;
   let thumbImgHeight = 150;
@@ -134,8 +135,6 @@
               style="width: {thumbImgWidth}px; height: {thumbImgHeight}px; overflow: hidden; position: relative;"
               data-ai-hint="abstract photo"
             />
-          {:else}
-            <img src="static/placeholder.svg" alt="No photo selected" style="width: 24px; height: 24px; overflow: visible;" />
           {/if}
           {#if $imageSrc && $photoOriginalDimensions && viewportRect.width > 0}
             <div
