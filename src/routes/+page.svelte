@@ -9,7 +9,7 @@
   import { onMount, onDestroy } from 'svelte';
   import ConfigModal from '../lib/ConfigModal.svelte';
   import StrollComponent from '../lib/Stroll.svelte';
-  import { Stroll } from '../lib/stroll';
+  import { RandomDirectionStroll } from '../lib/randomDirectionStroll.ts';
 
   // Define writable stores for the application's state
   const placeholderUrl = base + "/placeholder.svg";
@@ -40,7 +40,7 @@
 
           // Instantiate Stroll object here
           // Initial viewport size is 0,0; StrollComponent will update it once mounted
-          strollInstance = new Stroll(
+          strollInstance = new RandomDirectionStroll(
             { width: 0, height: 0 }, // Placeholder viewport size
             { width: img.width, height: img.height },
             $zoomLevel, // Use current value of zoomLevel store
