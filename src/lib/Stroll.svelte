@@ -159,19 +159,12 @@
     position: absolute;
     top: 1rem;
     right: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
     z-index: 1000; /* Ensure it's above the image */
     transition: background-color 0.2s ease;
   }
 
   .exit-button:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: white;
   }
 </style>
 
@@ -192,5 +185,5 @@
     <p style="color: white; font-size: 1.5rem;">No image loaded for strolling.</p>
   {/if}
 
-  <button class="exit-button" on:click={handleExit}>Exit (Esc)</button>
+  <button class="exit-button button hollow secondary" on:click={handleExit}>Exit (Esc)</button>
 </div>
