@@ -135,13 +135,7 @@
               data-ai-hint="abstract photo"
             />
           {:else}
-            <svg aria-label="No photo selected" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="overflow: visible;">
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%" gradientUnits="percent">
-                <stop offset="0%" style="stop-color:#1779ba;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#e6e6e6;stop-opacity:1" />
-              </linearGradient>
-              <rect x="0" y="0" width="24" height="24" fill="url(#gradient)" stroke="none" stroke-width="0" />
-            </svg>
+            <img src="static/placeholder.svg" alt="No photo selected" style="width: 24px; height: 24px; overflow: visible;" />
           {/if}
           {#if $imageSrc && $photoOriginalDimensions && viewportRect.width > 0}
             <div
