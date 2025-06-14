@@ -22,9 +22,9 @@
   $: isPhotoLoaded = $imageSrc && $imageSrc.length > 0;
 
   export const MIN_ZOOM = 1.5;
-  export const MAX_ZOOM = 15;
-  export const MIN_SPEED = 0.1;
-  export const MAX_SPEED = 1;
+  export const MAX_ZOOM = 12;
+  export const MIN_SPEED = 0.05;
+  export const MAX_SPEED = 0.4;
 
   const handleFileChangeInternal = (event) => {
     if(handleFileChange) {
@@ -172,14 +172,14 @@
 
       <div class="card-section">
         <label for="speed-slider" class="flex-container align-middle margin-bottom-1">
-          <span class="margin-right-1">⚡</span> Speed: {$speedLevel.toFixed(1)} (screen widths/sec)
+          <span class="margin-right-1">⚡</span> Speed: {$speedLevel} (screen widths/sec)
         </label>
         <input
           type="range"
           id="speed-slider"
           min={MIN_SPEED}
           max={MAX_SPEED}
-          step={0.1}
+          step={0.05}
           bind:value={$speedLevel}
           class="width-100"
           on:input={(e) => speedLevel.set(parseFloat(e.target.value))}
