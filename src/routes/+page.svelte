@@ -10,6 +10,7 @@
   import ConfigModal from '../lib/ConfigModal.svelte';
   import StrollComponent from '../lib/Stroll.svelte';
   import { RandomDirectionStroll } from '../lib/randomDirectionStroll.ts';
+  import { HorizontalSweepStroll } from '../lib/horizontalSweepStroll.ts';
 
   // Define writable stores for the application's state
   const placeholderUrl = base + "/placeholder.svg";
@@ -41,6 +42,13 @@
           // Initial viewport size is 0,0; StrollComponent will update it once mounted
           if ($strollPattern === 'Random Direction') {
             strollInstance = new RandomDirectionStroll(
+              { width: 0, height: 0 }, // Placeholder viewport size
+              { width: img.width, height: img.height },
+              $zoomLevel, // Use current value of zoomLevel store
+              $speedLevel  // Use current value of speedLevel store
+            );
+          } else if ($strollPattern === 'Horizontal Sweep') {
+            strollInstance = new HorizontalSweepStroll(
               { width: 0, height: 0 }, // Placeholder viewport size
               { width: img.width, height: img.height },
               $zoomLevel, // Use current value of zoomLevel store

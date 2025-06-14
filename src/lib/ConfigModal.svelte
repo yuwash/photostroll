@@ -1,6 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import { RandomDirectionStroll } from './randomDirectionStroll.ts';
+  import { HorizontalSweepStroll } from './horizontalSweepStroll.ts';
 
   let fileInputRef;
   let thumbImgWidth = 150;
@@ -19,7 +20,7 @@
   export let canExplore; // This is now the writable store
   export let strollInstance; // NEW: Accept strollInstance as a prop
 
-  const strollPatterns = ['Random Direction'];
+  const strollPatterns = ['Random Direction', 'Horizontal Sweep'];
   const selectedStrollPattern = writable(strollPatterns[0]);
 
   $: {
@@ -28,6 +29,13 @@
       // Initial viewport size is 0,0; StrollComponent will update it once mounted
       if ($selectedStrollPattern === 'Random Direction') {
         strollInstance = new RandomDirectionStroll(
+          { width: window.innerWidth, height: window.innerHeight }, // Placeholder viewport size
+          { width: $photoOriginalDimensions.width, height: $photoOriginalDimensions.height },
+          $zoomLevel, // Use current value of zoomLevel store
+          $speedLevel  // Use current value of speedLevel store
+        );
+      } else if ($selectedStrollPattern === 'Horizontal Sweep') {
+        strollInstance = new HorizontalSweepStroll(
           { width: window.innerWidth, height: window.innerHeight }, // Placeholder viewport size
           { width: $photoOriginalDimensions.width, height: $photoOriginalDimensions.height },
           $zoomLevel, // Use current value of zoomLevel store
