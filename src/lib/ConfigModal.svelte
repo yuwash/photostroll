@@ -1,5 +1,7 @@
 <script>
   import { base } from '$app/paths';
+  import { RandomDirectionStroll } from './randomDirectionStroll.ts';
+
   let fileInputRef;
   let thumbImgWidth = 150;
   let thumbImgHeight = 150;
@@ -12,8 +14,28 @@
   export let photoOriginalDimensions; // This is now the writable store
   export let zoomLevel; // This is now the writable store
   export let speedLevel; // This is now the writable store
+  import { writable } from 'svelte/store';
+
   export let canExplore; // This is now the writable store
   export let strollInstance; // NEW: Accept strollInstance as a prop
+
+  const strollPatterns = ['Random Direction'];
+  const selectedStrollPattern = writable(strollPatterns[0]);
+
+  $: {
+    if ($imageSrc && $photoOriginalDimensions && $selectedStrollPattern) {
+      // Instantiate Stroll object here
+      // Initial viewport size is 0,0; StrollComponent will update it once mounted
+      if ($selectedStrollPattern === 'Random Direction') {
+        strollInstance = new RandomDirectionStroll(
+          { width: window.innerWidth, height: window.innerHeight }, // Placeholder viewport size
+          { width: $photoOriginalDimensions.width, height: $photoOriginalDimensions.height },
+          $zoomLevel, // Use current value of zoomLevel store
+          $speedLevel  // Use current value of speedLevel store
+        );
+      }
+    }
+  }
 
   let animationFrameId; // ID for requestAnimationFrame
   let lastTickTime; // Timestamp of the last animation frame
@@ -178,6 +200,22 @@
           on:input={(e) => speedLevel.set(parseFloat(e.target.value))}
           aria-label={`Movement speed ${$speedLevel.toFixed(1)} screen widths per second`}
         />
+      </div>
+
+      <div class="card-section">
+        <label for="stroll-pattern" class="flex-container align-middle margin-bottom-1">
+          <span class="margin-right-1">🚶</span> Stroll Pattern
+        </label>
+        <select
+          id="stroll-pattern"
+          bind:value={$selectedStrollPattern}
+          class="width-100"
+          aria-label="Stroll pattern"
+        >
+          {#each strollPatterns as pattern}
+            <option value={pattern}>{pattern}</option>
+          {/each}
+        </select>
       </div>
 
       <div class="card-section">

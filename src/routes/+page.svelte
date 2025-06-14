@@ -14,6 +14,7 @@
   // Define writable stores for the application's state
   const placeholderUrl = base + "/placeholder.svg";
   const imageSrc = writable(null);
+  const strollPattern = writable("Random Direction");
   const photoOriginalDimensions = writable({ width: 150, height: 150 });
   const zoomLevel = writable(1.5);
   const speedLevel = writable(0.1);
@@ -21,13 +22,12 @@
   const isExploring = writable(false);
 
   // Variable to hold the Stroll instance
-  let strollInstance = null;
+  let strollInstance;
 
   // Function to handle file input change
   const handleFileChange = (event) => loadFile(event.target.files[0]);
 
   const loadFile = (file) => {
-    console.log(file);
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -35,17 +35,18 @@
         const img = new Image();
         img.onload = () => {
           photoOriginalDimensions.set({ width: img.width, height: img.height });
-          console.log($photoOriginalDimensions);
           canExplore.set(true); // Enable explore once photo is loaded
 
           // Instantiate Stroll object here
           // Initial viewport size is 0,0; StrollComponent will update it once mounted
-          strollInstance = new RandomDirectionStroll(
-            { width: 0, height: 0 }, // Placeholder viewport size
-            { width: img.width, height: img.height },
-            $zoomLevel, // Use current value of zoomLevel store
-            $speedLevel  // Use current value of speedLevel store
-          );
+          if ($strollPattern === 'Random Direction') {
+            strollInstance = new RandomDirectionStroll(
+              { width: 0, height: 0 }, // Placeholder viewport size
+              { width: img.width, height: img.height },
+              $zoomLevel, // Use current value of zoomLevel store
+              $speedLevel  // Use current value of speedLevel store
+            );
+          }
         };
         img.src = e.target.result;
       };
