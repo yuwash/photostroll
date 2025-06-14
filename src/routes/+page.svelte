@@ -1,6 +1,5 @@
 <script>
   // Use specific imports for jQuery and Foundation for better tree-shaking and consistency
-  import jQuery from 'jquery';
   import 'foundation-sites/dist/css/foundation.min.css';
   // Foundation needs to be initialized after the DOM is ready
   // and jQuery is available.
@@ -92,9 +91,6 @@
   // Lifecycle hooks for fullscreen event listener
   onMount(() => {
     if (typeof window !== 'undefined') {
-      // Initialize Foundation after the component is mounted and jQuery is ready
-      //jQuery(document).foundation();
-
       document.addEventListener('fullscreenchange', handleFullscreenChange);
       document.addEventListener('webkitfullscreenchange', handleFullscreenChange); // For Safari
       document.addEventListener('mozfullscreenchange', handleFullscreenChange);    // For Firefox
