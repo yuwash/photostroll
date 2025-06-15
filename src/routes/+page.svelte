@@ -11,16 +11,17 @@
   import StrollComponent from '../lib/Stroll.svelte';
   import { RandomDirectionStroll } from '../lib/randomDirectionStroll.ts';
   import { HorizontalSweepStroll } from '../lib/horizontalSweepStroll.ts';
+  import { strollPatterns } from '../lib/patterns.ts';
 
   // Define writable stores for the application's state
   const placeholderUrl = base + "/placeholder.svg";
   const imageSrc = writable(null);
-  const strollPattern = writable("Random Direction");
   const photoOriginalDimensions = writable({ width: 150, height: 150 });
   const zoomLevel = writable(1.5);
   const speedLevel = writable(0.1);
   const canExplore = writable(false);
   const isExploring = writable(false);
+  const strollPattern = writable(strollPatterns[0]);
 
   // Variable to hold the Stroll instance
   let strollInstance;
@@ -148,5 +149,6 @@
     handleExplore={handleExplore}
     handleFileChange={handleFileChange}
     strollInstance={strollInstance}
+    strollPattern={strollPattern}
   />
 {/if}

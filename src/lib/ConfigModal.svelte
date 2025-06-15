@@ -2,6 +2,7 @@
   import { base } from '$app/paths';
   import { RandomDirectionStroll } from './randomDirectionStroll.ts';
   import { HorizontalSweepStroll } from './horizontalSweepStroll.ts';
+  import { strollPatterns } from './patterns.ts';
 
   let fileInputRef;
   let thumbImgWidth = 150;
@@ -15,26 +16,23 @@
   export let photoOriginalDimensions; // This is now the writable store
   export let zoomLevel; // This is now the writable store
   export let speedLevel; // This is now the writable store
-  import { writable } from 'svelte/store';
+  export let strollPattern; // This is now the writable store
 
   export let canExplore; // This is now the writable store
   export let strollInstance; // NEW: Accept strollInstance as a prop
 
-  const strollPatterns = ['Random Direction', 'Horizontal Sweep'];
-  const selectedStrollPattern = writable(strollPatterns[0]);
-
   $: {
-    if ($imageSrc && $photoOriginalDimensions && $selectedStrollPattern) {
+    if ($imageSrc && $photoOriginalDimensions && $strollPattern) {
       // Instantiate Stroll object here
       // Initial viewport size is 0,0; StrollComponent will update it once mounted
-      if ($selectedStrollPattern === 'Random Direction') {
+      if ($strollPattern === 'Random Direction') {
         strollInstance = new RandomDirectionStroll(
           { width: window.innerWidth, height: window.innerHeight }, // Placeholder viewport size
           { width: $photoOriginalDimensions.width, height: $photoOriginalDimensions.height },
           $zoomLevel, // Use current value of zoomLevel store
           $speedLevel  // Use current value of speedLevel store
         );
-      } else if ($selectedStrollPattern === 'Horizontal Sweep') {
+      } else if ($strollPattern === 'Horizontal Sweep') {
         strollInstance = new HorizontalSweepStroll(
           { width: window.innerWidth, height: window.innerHeight }, // Placeholder viewport size
           { width: $photoOriginalDimensions.width, height: $photoOriginalDimensions.height },
@@ -216,7 +214,7 @@
         </label>
         <select
           id="stroll-pattern"
-          bind:value={$selectedStrollPattern}
+          bind:value={$strollPattern}
           class="width-100"
           aria-label="Stroll pattern"
         >
