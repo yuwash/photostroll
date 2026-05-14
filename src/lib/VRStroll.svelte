@@ -81,7 +81,7 @@
   });
 </script>
 
-<div class="vr-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000;">
+<div class="vr-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
   <a-scene 
     bind:this={sceneEl} 
     vr-mode-ui="enabled: true"

@@ -208,7 +208,6 @@
     height: 100vh; /* Full viewport height */
     overflow: hidden; /* Crucial to hide parts of the image outside the viewport */
     background-color: black; /* Default background color */
-    z-index: 999; /* Ensure it's above other content */
   }
 
   .stroll-image {
