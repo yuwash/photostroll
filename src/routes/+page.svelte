@@ -21,13 +21,19 @@
   const speedLevel = writable(0.1);
   const canExplore = writable(false);
   const isExploring = writable(false);
+  const isPhotoLoaded = writable(false);
   const strollPattern = writable(strollPatterns[0]);
 
   // Variable to hold the Stroll instance
   let strollInstance;
 
   // Function to handle file input change
-  const handleFileChange = (event) => loadFile(event.target.files[0]);
+  const handleFileChange = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      isPhotoLoaded.set(true);
+      loadFile(event.target.files[0]);
+    }
+  };
 
   const loadFile = (file) => {
     if (file) {
@@ -112,6 +118,7 @@
           .then(blob => {
             const file = new File([blob], "placeholder.svg", { type: "image/svg+xml" });
             loadFile(file);
+            isPhotoLoaded.set(false);
           })
           .catch(error => console.error("Error loading placeholder image:", error));
       }
@@ -148,7 +155,8 @@
     canExplore={canExplore}
     handleExplore={handleExplore}
     handleFileChange={handleFileChange}
-    strollInstance={strollInstance}
+    bind:strollInstance={strollInstance}
     strollPattern={strollPattern}
+    isPhotoLoaded={isPhotoLoaded}
   />
 {/if}

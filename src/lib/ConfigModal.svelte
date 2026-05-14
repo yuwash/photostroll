@@ -19,6 +19,7 @@
   export let strollPattern; // This is now the writable store
 
   export let canExplore; // This is now the writable store
+  export let isPhotoLoaded; // Track if the file is user-provided
   export let strollInstance; // NEW: Accept strollInstance as a prop
 
   $: {
@@ -45,10 +46,6 @@
 
   let animationFrameId; // ID for requestAnimationFrame
   let lastTickTime; // Timestamp of the last animation frame
-
-  // Derive isPhotoLoaded from the imageSrc store
-  // The '$' prefix here correctly auto-subscribes to the imageSrc store prop
-  $: isPhotoLoaded = $imageSrc && $imageSrc.length > 0;
 
   export const MIN_ZOOM = 1.5;
   export const MAX_ZOOM = 12;
@@ -227,11 +224,11 @@
         <div class="buttons has-addons">
           <button
             on:click={() => fileInputRef.click()}
-            class={["button", ...(isPhotoLoaded ? [] : ["is-primary"])]}
-            aria-label={isPhotoLoaded ? "Change photo" : "Choose photo"}
+            class={["button", ...($isPhotoLoaded ? [] : ["is-primary"])]}
+            aria-label={$isPhotoLoaded ? "Change photo" : "Choose photo"}
           >
             <span class="mr-1">📸</span>
-            {isPhotoLoaded ? "Change Photo" : "Choose Photo"}
+            {$isPhotoLoaded ? "Change Photo" : "Choose Photo"}
           </button>
           <button
             on:click={handleExploreInternal}
