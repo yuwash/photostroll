@@ -98,11 +98,8 @@
     bind:this={sceneEl} 
     on:exit-vr={handleExitVR}
     vr-mode-ui="enabled: true"
+    embedded
   >
-    <a-assets>
-      <img id="vr-photo" src={$imageSrc} alt="VR source" />
-    </a-assets>
-    
     <!-- Fixed camera to ignore user movement/looking if requested, 
           but usually in VR you want to look at the plane. 
           Setting look-controls to false as per "ignoring movement of the user" 
@@ -112,16 +109,16 @@
       look-controls="enabled: false" 
       wasd-controls="enabled: false" 
       position="0 1.6 0"
-    ></a-entity>
+    >
+      <a-plane
+        id="vr-plane"
+        position="0 0 -2"
+        width={planeWidth}
+        height={planeHeight}
+        material="shader: flat; side: double; color: #fff; src: {$imageSrc}"
+      ></a-plane>
+    </a-entity>
     
-    <a-plane
-      id="vr-plane"
-      position="0 1.6 -2"
-      width={planeWidth}
-      height={planeHeight}
-      material="shader: flat; side: double; color: #fff; src: #vr-photo"
-    ></a-plane>
-    
-    <a-sky color="#222"></a-sky>
+    <a-sky color="#aaa"></a-sky>
   </a-scene>
 </div>

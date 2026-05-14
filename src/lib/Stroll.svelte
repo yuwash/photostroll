@@ -201,6 +201,10 @@
 </script>
 
 <style>
+  :global(html.a-fullscreen .stroll-container) {
+    background-color: transparent !important;
+  }
+
   .stroll-container {
     position: fixed; /* Position fixed to cover the entire viewport */
     top: 0;
