@@ -185,5 +185,7 @@
     <p style="color: white; font-size: 1.5rem;">No image loaded for strolling.</p>
   {/if}
 
-  <button class="exit-button button hollow secondary" on:click={handleExit}>Exit (Esc)</button>
+  <button class="exit-button button is-outlined" on:click={handleExit}
+    >Exit (Esc)</button
+  >
 </div>

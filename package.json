@@ -17,7 +17,7 @@
 		"@sveltejs/kit": "^2.59.1",
 		"@sveltejs/vite-plugin-svelte": "^5.1.0",
 		"@types/jquery": "^4.0.0",
-		"foundation-sites": "^6.9.0",
+		"bulma": "^1.0.4",
 		"jquery": "^4.0.0",
 		"svelte": "^5.55.5",
 		"svelte-check": "^4.4.8",

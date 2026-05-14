@@ -145,17 +145,15 @@
 }
 </style>
 
-<div class="grid-x align-center">
-  <div class="cell small-12 medium-8 large-6">
+<div class="columns is-centered">
+  <div class="column is-12-mobile is-8-tablet is-6-desktop">
     <div class="card">
-      <div class="card-divider">
-        <h1 class="text-center">Photostroll</h1>
-      </div>
-      
-      <div class="card-section grid-x align-center">
-        <div
-          class="thumbnail"
-        >
+      <header class="card-header">
+        <h1 class="card-header-title is-centered is-size-1">Photostroll</h1>
+      </header>
+
+      <div class="card-content columns is-centered">
+        <div class="image">
           {#if $imageSrc && $photoOriginalDimensions}
             <img
               src={$imageSrc}
@@ -174,9 +172,9 @@
         </div>
       </div>
 
-      <div class="card-section">
-        <label for="zoom-slider" class="flex-container align-middle margin-bottom-1">
-          <span class="margin-right-1">🔎</span> Zoom Level: {$zoomLevel}x
+      <div class="card-content">
+        <label for="zoom-slider" class="is-flex is-align-items-center mb-1">
+          <span class="mr-1">🔎</span> Zoom Level: {$zoomLevel}x
         </label>
         <input
           type="range"
@@ -191,9 +189,9 @@
         />
       </div>
 
-      <div class="card-section">
-        <label for="speed-slider" class="flex-container align-middle margin-bottom-1">
-          <span class="margin-right-1">⚡</span> Speed: {$speedLevel} (screen widths/sec)
+      <div class="card-content">
+        <label for="speed-slider" class="is-flex is-align-items-center mb-1">
+          <span class="mr-1">⚡</span> Speed: {$speedLevel} (screen widths/sec)
         </label>
         <input
           type="range"
@@ -208,30 +206,32 @@
         />
       </div>
 
-      <div class="card-section">
-        <label for="stroll-pattern" class="flex-container align-middle margin-bottom-1">
-          <span class="margin-right-1">🚶</span> Stroll Pattern
+      <div class="card-content">
+        <label for="stroll-pattern" class="is-flex is-align-items-center mb-1">
+          <span class="mr-1">🚶</span> Stroll Pattern
         </label>
-        <select
-          id="stroll-pattern"
-          bind:value={$strollPattern}
-          class="width-100"
-          aria-label="Stroll pattern"
-        >
-          {#each strollPatterns as pattern}
-            <option value={pattern}>{pattern}</option>
-          {/each}
-        </select>
+        <div class="select">
+          <select
+            id="stroll-pattern"
+            bind:value={$strollPattern}
+            aria-label="Stroll pattern"
+          >
+            {#each strollPatterns as pattern}
+              <option value={pattern}>{pattern}</option>
+            {/each}
+          </select>
+        </div>
       </div>
 
-      <div class="card-section">
-        <div class="button-group expanded">
+      <div class="card-content">
+        <div class="buttons has-addons">
           <button
             on:click={() => fileInputRef.click()}
-            class={['button', ...(isPhotoLoaded ? ['hollow'] : [])]}
+            class={["button", ...(isPhotoLoaded ? [] : ["is-primary"])]}
             aria-label={isPhotoLoaded ? "Change photo" : "Choose photo"}
           >
-            <span class="margin-right-1">📸</span> {isPhotoLoaded ? "Change Photo" : "Choose Photo"}
+            <span class="mr-1">📸</span>
+            {isPhotoLoaded ? "Change Photo" : "Choose Photo"}
           </button>
           <button
             on:click={handleExploreInternal}
@@ -239,7 +239,7 @@
             aria-label="Explore photo"
             disabled={!$canExplore}
           >
-            <span class="margin-right-1">▶</span> Explore
+            <span class="mr-1">▶</span> Explore
           </button>
         </div>
       </div>
@@ -248,7 +248,7 @@
         bind:this={fileInputRef}
         on:change={handleFileChangeInternal}
         accept="image/*"
-        class="hide"
+        class="is-hidden"
       />
     </div>
   </div>

@@ -1,6 +1,6 @@
 <script>
   // Use specific imports for jQuery and Foundation for better tree-shaking and consistency
-  import 'foundation-sites/dist/css/foundation.min.css';
+  import 'bulma/css/bulma.min.css';
   // Foundation needs to be initialized after the DOM is ready
   // and jQuery is available.
 
