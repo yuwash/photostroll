@@ -1,21 +1,23 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy, tick as svelteTick } from 'svelte';
-  import { writable } from 'svelte/store';
+  import type { Writable } from 'svelte/store';
+  import type { Stroll } from './stroll';
 
-  export let imageSrc;
-  export let photoOriginalDimensions;
-  export let zoomLevel;
-  export let speedLevel;
-  export let strollInstance;
-  export let onExit;
-  export let vrStrollComponent;
+  export let imageSrc: Writable<string | null>;
+  export let photoOriginalDimensions: any;
+  export let zoomLevel: any;
+  export let speedLevel: any;
+  export let strollInstance: Stroll;
+  export let onExit: () => void;
+  export let vrStrollComponent: any;
 
-  let sceneEl;
+  let sceneEl: any;
+  let planeEl: any;
   let planeWidth = 4;
   let planeHeight = 2.25;
-  let animationFrameId;
+  let animationFrameId: number | null;
 
-  function tick(currentTime) {
+  function tick(currentTime: number) {
     if (sceneEl && strollInstance) {
       const box = strollInstance.getViewportInOriginalImageScale();
       const imgSize = strollInstance.getOriginalImageSize();
@@ -28,15 +30,12 @@
 
         // Check for valid numbers to prevent A-Frame errors
         if (isFinite(rx) && isFinite(ry) && isFinite(ox) && isFinite(oy)) {
-          const plane = sceneEl.querySelector('#vr-plane');
+          const plane = planeEl || sceneEl.querySelector('#vr-plane');
           if (plane) {
-            plane.setAttribute('material', {
-              src: '#vr-photo',
-              repeat: { x: rx, y: ry },
-              offset: { x: ox, y: oy },
-              shader: 'flat',
-              side: 'double'
-            });
+            planeEl = plane;
+            // Update material properties individually to avoid full material re-parse
+            plane.setAttribute('material', 'repeat', { x: rx, y: ry });
+            plane.setAttribute('material', 'offset', { x: ox, y: oy });
           }
         }
       }
@@ -49,12 +48,19 @@
     planeWidth = 4;
     planeHeight = 4 / aspect;
     
-    // Wait for the scene to be in the DOM
+    // Wait for the scene to be in the DOM and A-Frame to be ready
     svelteTick().then(() => {
       if (sceneEl) {
-        // Try to enter VR mode if the browser supports it
-        if (sceneEl.enterVR) {
-          sceneEl.enterVR();
+        const enterVRMode = () => {
+          if (sceneEl.enterVR) {
+            sceneEl.enterVR();
+          }
+        };
+
+        if (sceneEl.hasLoaded) {
+          enterVRMode();
+        } else {
+          sceneEl.addEventListener('loaded', enterVRMode, { once: true });
         }
       }
     });
@@ -94,7 +100,7 @@
     vr-mode-ui="enabled: true"
   >
     <a-assets>
-      <img id="vr-photo" src={$imageSrc} alt="VR source" crossorigin="anonymous" />
+      <img id="vr-photo" src={$imageSrc} alt="VR source" />
     </a-assets>
     
     <!-- Fixed camera to ignore user movement/looking if requested, 
@@ -113,9 +119,9 @@
       position="0 1.6 -2"
       width={planeWidth}
       height={planeHeight}
-      material="shader: flat; side: double; color: #fff"
+      material="shader: flat; side: double; color: #fff; src: #vr-photo"
     ></a-plane>
     
-    <a-sky color="#000"></a-sky>
+    <a-sky color="#222"></a-sky>
   </a-scene>
 </div>
