@@ -11,6 +11,7 @@
   export let vrStrollComponent;
 
   let sceneEl;
+  let planeEl;
   let planeWidth = 4;
   let planeHeight = 2.25;
   let animationFrameId;
@@ -28,9 +29,10 @@
 
         // Check for valid numbers to prevent A-Frame errors
         if (isFinite(rx) && isFinite(ry) && isFinite(ox) && isFinite(oy)) {
-          const plane = sceneEl.querySelector('#vr-plane');
-          if (plane) {
-            plane.setAttribute('material', {
+          if (!planeEl) planeEl = sceneEl.querySelector('#vr-plane');
+          
+          if (planeEl) {
+            planeEl.setAttribute('material', {
               src: '#vr-photo',
               repeat: { x: rx, y: ry },
               offset: { x: ox, y: oy },
@@ -81,10 +83,20 @@
       handleExitVR
     };
 
+    if (sceneEl) {
+      sceneEl.addEventListener('exit-vr', handleExitVR);
+    }
+
     // Update plane dimensions on mount
     const aspect = window.innerWidth / window.innerHeight;
     planeWidth = 4;
     planeHeight = 4 / aspect;
+
+    return () => {
+      if (sceneEl) {
+        sceneEl.removeEventListener('exit-vr', handleExitVR);
+      }
+    };
   });
 
   onDestroy(() => {
@@ -97,7 +109,6 @@
 <div class="vr-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000;">
   <a-scene 
     bind:this={sceneEl} 
-    on:exit-vr={handleExitVR}
     vr-mode-ui="enabled: true"
     embedded
   >

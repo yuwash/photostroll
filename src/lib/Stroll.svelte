@@ -130,11 +130,6 @@
 
   // Lifecycle hook: runs when the component is first mounted to the DOM
   onMount(async () => {
-    // Dynamically import A-Frame only on the client
-    if (typeof window !== 'undefined') {
-      await import('aframe');
-    }
-
     updateViewportSize(); // Get initial viewport dimensions
     window.addEventListener('resize', updateViewportSize); // Listen for window resize events
     window.addEventListener('keydown', handleKeyDown); // Listen for keyboard events
