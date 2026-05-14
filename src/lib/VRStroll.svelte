@@ -49,12 +49,19 @@
     planeWidth = 4;
     planeHeight = 4 / aspect;
     
-    // Wait for the scene to be in the DOM
+    // Wait for the scene to be in the DOM and A-Frame to be ready
     svelteTick().then(() => {
       if (sceneEl) {
-        // Try to enter VR mode if the browser supports it
-        if (sceneEl.enterVR) {
-          sceneEl.enterVR();
+        const enterVRMode = () => {
+          if (sceneEl.enterVR) {
+            sceneEl.enterVR();
+          }
+        };
+
+        if (sceneEl.hasLoaded) {
+          enterVRMode();
+        } else {
+          sceneEl.addEventListener('loaded', enterVRMode, { once: true });
         }
       }
     });
@@ -116,6 +123,6 @@
       material="shader: flat; side: double; color: #fff"
     ></a-plane>
     
-    <a-sky color="#000"></a-sky>
+    <a-sky color="#222"></a-sky>
   </a-scene>
 </div>
