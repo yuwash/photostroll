@@ -1,7 +1,7 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick as svelteTick } from 'svelte';
   import { writable } from 'svelte/store';
-  // Removed: import { Stroll } from './stroll'; // Stroll instance is now passed as a prop
+  import VRStroll from './VRStroll.svelte';
 
   // Exported props are Svelte stores
   export let imageSrc; // writable store for image data URL
@@ -12,7 +12,6 @@
   export let strollInstance; // NEW: Stroll instance is now passed as a prop
 
   let strollContainer; // Reference to the div element that acts as the viewport
-  // Removed: let strollInstance; // No longer declared here, it's a prop
   let animationFrameId; // ID for requestAnimationFrame
   let lastTickTime; // Timestamp of the last animation frame
 
@@ -22,6 +21,11 @@
   // This store holds the current position and size of the image as calculated by the Stroll class
   const currentBoundingBox = writable({ x: 0, y: 0, width: 0, height: 0 });
   const imageOffset = writable({ x: 0, y: 0 });
+
+  // Dropdown state
+  let isDropdownOpen = false;
+  let isVRMode = false;
+  let vrStrollComponent;
 
   /**
    * Updates the internal viewportSize store based on the actual dimensions of the strollContainer.
@@ -51,6 +55,10 @@
     if (strollInstance) { // Ensure strollInstance exists before calling tick
       strollInstance.tick(deltaTimeInSeconds); // Advance the image position
       currentBoundingBox.set(strollInstance.getBoundingBox()); // Get the new bounding box
+
+      if (isVRMode && vrStrollComponent) {
+        vrStrollComponent.tick(currentTime);
+      }
     }
 
     animationFrameId = requestAnimationFrame(tick); // Request the next frame
@@ -60,6 +68,7 @@
    * Calls the onExit callback prop to signal the parent component to exit stroll mode.
    */
   function handleExit() {
+    isVRMode = false;
     if (onExit) {
       onExit();
     }
@@ -75,11 +84,68 @@
     }
   }
 
+  /**
+   * Toggles the dropdown menu open/closed state.
+   */
+  function toggleDropdown() {
+    isDropdownOpen = !isDropdownOpen;
+  }
+
+  /**
+   * Closes the dropdown menu.
+   */
+  function closeDropdown() {
+    isDropdownOpen = false;
+  }
+
+  /**
+   * Toggles VR mode.
+   */
+  async function toggleVR() {
+    isVRMode = !isVRMode;
+    closeDropdown();
+    
+    if (isVRMode) {
+      // Create VRStroll component when entering VR mode
+      if (typeof window !== 'undefined') {
+        // Wait for the next tick to ensure DOM is ready
+        await svelteTick();
+        
+        // Call enterVR on the VRStroll component
+        if (vrStrollComponent && vrStrollComponent.enterVR) {
+          vrStrollComponent.enterVR();
+        }
+      }
+    } else {
+      // Exit VR mode
+      if (vrStrollComponent && vrStrollComponent.handleExitVR) {
+        vrStrollComponent.handleExitVR();
+      }
+    }
+  }
+
+  function handleExitVR() {
+    isVRMode = false;
+  }
+
   // Lifecycle hook: runs when the component is first mounted to the DOM
-  onMount(() => {
+  onMount(async () => {
+    // Dynamically import A-Frame only on the client
+    if (typeof window !== 'undefined') {
+      await import('aframe');
+    }
+
     updateViewportSize(); // Get initial viewport dimensions
     window.addEventListener('resize', updateViewportSize); // Listen for window resize events
     window.addEventListener('keydown', handleKeyDown); // Listen for keyboard events
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (event) => {
+      const dropdown = document.querySelector('.dropdown');
+      if (dropdown && !dropdown.contains(event.target)) {
+        closeDropdown();
+      }
+    });
 
     // If strollInstance is already available on mount, start the animation loop
     if (strollInstance) {
@@ -155,37 +221,72 @@
     image-rendering: optimize-quality; /* Adjust as needed: auto, crisp-edges, pixelated */
   }
 
-  .exit-button {
+  .control-bar {
     position: absolute;
     top: 1rem;
     right: 1rem;
     z-index: 1000; /* Ensure it's above the image */
+  }
+
+  .control-bar .is-outlined {
     transition: background-color 0.2s ease;
   }
 
-  .exit-button:hover {
+  .control-bar .is-outlined:hover {
     background-color: white;
   }
 </style>
 
 <div class="stroll-container" bind:this={strollContainer}>
   {#if $imageSrc}
-    <img
-      src={$imageSrc}
-      alt="Strolling photo"
-      class="stroll-image"
-      style="
-        height: {currentBoundingBox.height}px;
-        width: {100*$zoomLevel}vw;
-        max-width: initial;
-        transform: translate({$imageOffset.x}px, {$imageOffset.y}px);
-      "
-    />
+    {#if !isVRMode}
+      <img
+        src={$imageSrc}
+        alt="Strolling photo"
+        class="stroll-image"
+        style="
+          height: {currentBoundingBox.height}px;
+          width: {100*$zoomLevel}vw;
+          max-width: initial;
+          transform: translate({$imageOffset.x}px, {$imageOffset.y}px);
+        "
+      />
+    {/if}
   {:else}
     <p style="color: white; font-size: 1.5rem;">No image loaded for strolling.</p>
   {/if}
 
-  <button class="exit-button button is-outlined" on:click={handleExit}
-    >Exit (Esc)</button
-  >
+  {#if isVRMode}
+    <svelte:component this={VRStroll} 
+      imageSrc={imageSrc}
+      photoOriginalDimensions={photoOriginalDimensions}
+      zoomLevel={zoomLevel}
+      speedLevel={speedLevel}
+      bind:strollInstance={strollInstance}
+      onExit={handleExitVR}
+      bind:vrStrollComponent={vrStrollComponent}
+    />
+  {/if}
+
+  <div class="control-bar buttons">
+    <button class="exit-button button is-outlined" on:click={handleExit}
+      >Exit (Esc)</button
+    >
+    <div class="dropdown is-right" class:is-active={isDropdownOpen}>
+      <div class="dropdown-trigger">
+        <button class="button is-outlined" aria-haspopup="true" aria-controls="control-dropdown-menu" title="More options" aria-label="More options" on:click={toggleDropdown}>
+          <span class="icon is-small">
+            <span class="mr-1">┇</span>
+          </span>
+        </button>
+      </div>
+      <div class="dropdown-menu" id="control-dropdown-menu" role="menu">
+        <div class="dropdown-content">
+          <button class="dropdown-item button" on:click={toggleVR}>
+            {isVRMode ? 'Exit VR' : 'Enter VR'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
