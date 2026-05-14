@@ -15,6 +15,7 @@
   let planeWidth = 4;
   let planeHeight = 2.25;
   let animationFrameId;
+  let sceneLoaded = false;
 
   function tick(currentTime) {
     if (sceneEl && strollInstance) {
@@ -58,6 +59,8 @@
       handleExitVR
     };
 
+    sceneLoaded = true;
+
     if (sceneEl) {
       sceneEl.addEventListener('exit-vr', handleExitVR);
     }
@@ -82,6 +85,7 @@
 </script>
 
 <div class="vr-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+{#if sceneLoaded}
   <a-scene 
     bind:this={sceneEl} 
     vr-mode-ui="enabled: true"
@@ -112,4 +116,5 @@
     
     <a-sky color="#aaa"></a-sky>
   </a-scene>
+{/if}
 </div>
