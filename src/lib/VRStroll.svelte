@@ -45,30 +45,6 @@
     }
   }
 
-  function enterVR() {
-    // Calculate plane dimensions based on aspect ratio
-    const aspect = window.innerWidth / window.innerHeight;
-    planeWidth = 4;
-    planeHeight = 4 / aspect;
-    
-    // Wait for the scene to be in the DOM and A-Frame to be ready
-    svelteTick().then(() => {
-      if (sceneEl) {
-        const enterVRMode = () => {
-          if (sceneEl.enterVR) {
-            sceneEl.enterVR();
-          }
-        };
-
-        if (sceneEl.hasLoaded) {
-          enterVRMode();
-        } else {
-          sceneEl.addEventListener('loaded', enterVRMode, { once: true });
-        }
-      }
-    });
-  }
-
   function handleExitVR() {
     if (onExit) {
       onExit();
@@ -79,7 +55,6 @@
     // Set the component reference for parent access
     vrStrollComponent = {
       tick,
-      enterVR,
       handleExitVR
     };
 
