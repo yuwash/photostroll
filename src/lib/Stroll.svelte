@@ -243,8 +243,8 @@
         alt="Strolling photo"
         class="stroll-image"
         style="
-          height: {currentBoundingBox.height}px;
-          width: {100*$zoomLevel}vw;
+          width: {$currentBoundingBox.width}px;
+          height: {$currentBoundingBox.height}px;
           max-width: initial;
           transform: translate({$imageOffset.x}px, {$imageOffset.y}px);
         "
