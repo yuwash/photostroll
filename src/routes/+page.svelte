@@ -1,8 +1,5 @@
 <script>
-  // Use specific imports for jQuery and Foundation for better tree-shaking and consistency
   import 'bulma/css/bulma.min.css';
-  // Foundation needs to be initialized after the DOM is ready
-  // and jQuery is available.
 
   import { base } from '$app/paths';
   import { writable } from 'svelte/store';
