@@ -134,11 +134,16 @@
   width: 100%;
 }
 .viewport-rect {
-  position: relative;
+  position: absolute;
   border: 1px solid red;
-  boxSizing: border-box; /* Ensure border is included in width/height */
-  pointerEvents: none; /* Make sure it doesn't interfere with clicks */
-  zIndex: 10; /* Ensure it's above the image */
+  box-sizing: border-box; /* Ensure border is included in width/height */
+  pointer-events: none; /* Make sure it doesn't interfere with clicks */
+  z-index: 10; /* Ensure it's above the image */
+}
+.preview-container {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
 }
 </style>
 
@@ -150,12 +155,12 @@
       </header>
 
       <div class="card-content columns is-centered">
-        <div class="image">
+        <div class="preview-container">
           {#if $imageSrc && $photoOriginalDimensions}
             <img
               src={$imageSrc}
               alt="Selected photo thumbnail"
-              style="width: {thumbImgWidth}px; height: {thumbImgHeight}px; overflow: hidden; position: relative;"
+              style="width: {thumbImgWidth}px; height: {thumbImgHeight}px; position: relative;"
               data-ai-hint="abstract photo"
             />
           {/if}
@@ -163,8 +168,8 @@
             <div
               class="viewport-rect"
               aria-hidden="true"
-              style="left: {viewportRect.x}px; top: {viewportRect.y}px; width: {viewportRect.width}px; height: {viewportRect.height}px; transform: translateY({-thumbImgHeight}px); margin-bottom: -{viewportRect.height}px;"
-            />
+              style="left: {viewportRect.x}px; top: {viewportRect.y}px; width: {viewportRect.width}px; height: {viewportRect.height}px;"
+            ></div>
           {/if}
         </div>
       </div>
