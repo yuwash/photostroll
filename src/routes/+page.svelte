@@ -47,19 +47,21 @@
 
           // Instantiate Stroll object here
           // Initial viewport size is 0,0; StrollComponent will update it once mounted
+          const initialZoom = $zoomLevel;
+          const initialSpeed = $speedLevel;
           if ($strollPattern === 'Random Direction') {
             strollInstance = new RandomDirectionStroll(
               { width: 0, height: 0 }, // Placeholder viewport size
               { width: img.width, height: img.height },
-              $zoomLevel, // Use current value of zoomLevel store
-              $speedLevel  // Use current value of speedLevel store
+              initialZoom,
+              initialSpeed
             );
           } else if ($strollPattern === 'Horizontal Sweep') {
             strollInstance = new HorizontalSweepStroll(
               { width: 0, height: 0 }, // Placeholder viewport size
               { width: img.width, height: img.height },
-              $zoomLevel, // Use current value of zoomLevel store
-              $speedLevel  // Use current value of speedLevel store
+              initialZoom,
+              initialSpeed
             );
           }
         };

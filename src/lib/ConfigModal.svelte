@@ -25,20 +25,24 @@
   $: {
     if ($imageSrc && $photoOriginalDimensions && $strollPattern) {
       // Instantiate Stroll object here
-      // Initial viewport size is 0,0; StrollComponent will update it once mounted
+      // We use current values from stores, but we don't want to re-instantiate on every zoom/speed change.
+      // updateSettings handles those reactively elsewhere.
+      const initialZoom = $zoomLevel;
+      const initialSpeed = $speedLevel;
+
       if ($strollPattern === 'Random Direction') {
         strollInstance = new RandomDirectionStroll(
-          { width: window.innerWidth, height: window.innerHeight }, // Placeholder viewport size
+          { width: window.innerWidth, height: window.innerHeight },
           { width: $photoOriginalDimensions.width, height: $photoOriginalDimensions.height },
-          $zoomLevel, // Use current value of zoomLevel store
-          $speedLevel  // Use current value of speedLevel store
+          initialZoom,
+          initialSpeed
         );
       } else if ($strollPattern === 'Horizontal Sweep') {
         strollInstance = new HorizontalSweepStroll(
-          { width: window.innerWidth, height: window.innerHeight }, // Placeholder viewport size
+          { width: window.innerWidth, height: window.innerHeight },
           { width: $photoOriginalDimensions.width, height: $photoOriginalDimensions.height },
-          $zoomLevel, // Use current value of zoomLevel store
-          $speedLevel  // Use current value of speedLevel store
+          initialZoom,
+          initialSpeed
         );
       }
     }

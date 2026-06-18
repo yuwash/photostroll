@@ -39,13 +39,21 @@ export class Stroll {
   }
 
   private calculateScaledSize(): Dimensions {
-    if (this.originalImageSize.width === 0 || this.originalImageSize.height === 0 || this.viewportSize.width === 0) {
+    if (this.originalImageSize.width === 0 || this.originalImageSize.height === 0 || this.viewportSize.width === 0 || this.viewportSize.height === 0) {
       return { width: 0, height: 0 };
     }
-    const aspectRatio = this.originalImageSize.width / this.originalImageSize.height;
-    const scaledWidth = this.viewportSize.width * this.zoomLevel;
-    const scaledHeight = scaledWidth / aspectRatio;
-    return { width: scaledWidth, height: scaledHeight };
+
+    // "Cover" scaling: scale to the larger dimension to ensure the viewport is always filled.
+    const scaleX = this.viewportSize.width / this.originalImageSize.width;
+    const scaleY = this.viewportSize.height / this.originalImageSize.height;
+    const baseScale = Math.max(scaleX, scaleY);
+
+    const totalScale = baseScale * this.zoomLevel;
+
+    return {
+      width: this.originalImageSize.width * totalScale,
+      height: this.originalImageSize.height * totalScale
+    };
   }
 
   private calculateInitialPosition(): Position {
