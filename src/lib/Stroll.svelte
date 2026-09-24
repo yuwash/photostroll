@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy, tick as svelteTick } from 'svelte';
   import { writable } from 'svelte/store';
+  import { XRButton } from '@threlte/xr';
   import VRStroll from './VRStroll.svelte';
 
   // Exported props are Svelte stores
@@ -24,7 +25,6 @@
 
   // Dropdown state
   let isDropdownOpen = false;
-  let isVRMode = false;
   let vrStrollComponent;
 
   /**
@@ -56,7 +56,7 @@
       strollInstance.tick(deltaTimeInSeconds); // Advance the image position
       currentBoundingBox.set(strollInstance.getBoundingBox()); // Get the new bounding box
 
-      if (isVRMode && vrStrollComponent) {
+      if (vrStrollComponent) {
         vrStrollComponent.tick(currentTime);
       }
     }
@@ -68,7 +68,6 @@
    * Calls the onExit callback prop to signal the parent component to exit stroll mode.
    */
   function handleExit() {
-    isVRMode = false;
     if (onExit) {
       onExit();
     }
@@ -96,36 +95,6 @@
    */
   function closeDropdown() {
     isDropdownOpen = false;
-  }
-
-  /**
-   * Toggles VR mode.
-   */
-  async function toggleVR() {
-    isVRMode = !isVRMode;
-    closeDropdown();
-    
-    if (isVRMode) {
-      // Create VRStroll component when entering VR mode
-      if (typeof window !== 'undefined') {
-        // Wait for the next tick to ensure DOM is ready
-        await svelteTick();
-        
-        // Call enterVR on the VRStroll component
-        if (vrStrollComponent && vrStrollComponent.enterVR) {
-          vrStrollComponent.enterVR();
-        }
-      }
-    } else {
-      // Exit VR mode
-      if (vrStrollComponent && vrStrollComponent.handleExitVR) {
-        vrStrollComponent.handleExitVR();
-      }
-    }
-  }
-
-  function handleExitVR() {
-    isVRMode = false;
   }
 
   // Lifecycle hook: runs when the component is first mounted to the DOM
@@ -237,31 +206,28 @@
 
 <div class="stroll-container" bind:this={strollContainer}>
   {#if $imageSrc}
-    {#if !isVRMode}
-      <img
-        src={$imageSrc}
-        alt="Strolling photo"
-        class="stroll-image"
-        style="
-          width: {$currentBoundingBox.width}px;
-          height: {$currentBoundingBox.height}px;
-          max-width: initial;
-          transform: translate({$imageOffset.x}px, {$imageOffset.y}px);
-        "
-      />
-    {/if}
+    <img
+      src={$imageSrc}
+      alt="Strolling photo"
+      class="stroll-image"
+      style="
+        width: {$currentBoundingBox.width}px;
+        height: {$currentBoundingBox.height}px;
+        max-width: initial;
+        transform: translate({$imageOffset.x}px, {$imageOffset.y}px);
+      "
+    />
   {:else}
     <p style="color: white; font-size: 1.5rem;">No image loaded for strolling.</p>
   {/if}
 
-  {#if isVRMode}
+  {#if strollInstance}
     <svelte:component this={VRStroll} 
       imageSrc={imageSrc}
       photoOriginalDimensions={photoOriginalDimensions}
       zoomLevel={zoomLevel}
       speedLevel={speedLevel}
       bind:strollInstance={strollInstance}
-      onExit={handleExitVR}
       bind:vrStrollComponent={vrStrollComponent}
     />
   {/if}
@@ -280,9 +246,9 @@
       </div>
       <div class="dropdown-menu" id="control-dropdown-menu" role="menu">
         <div class="dropdown-content">
-          <button class="dropdown-item button" on:click={toggleVR}>
-            {isVRMode ? 'Exit VR' : 'Enter VR'}
-          </button>
+          <XRButton mode="immersive-vr" class="dropdown-item button">
+            {(session) => (session ? 'Exit VR' : 'Enter VR')}
+          </XRButton>
         </div>
       </div>
     </div>

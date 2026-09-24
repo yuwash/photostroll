@@ -7,7 +7,6 @@
 
   export let imageSrc;
   export let strollInstance;
-  export let onExit;
   export let vrStrollComponent;
 
   let planeMesh;
@@ -43,12 +42,6 @@
           $texture.needsUpdate = true;
         }
       }
-    }
-  }
-
-  function handleExitVR() {
-    if (onExit) {
-      onExit();
     }
   }
 
