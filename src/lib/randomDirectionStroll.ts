@@ -131,10 +131,8 @@ export class RandomDirectionStroll extends Stroll {
   public getNextPositionForTick(deltaTimeInSeconds: number, position: Position): Position {
     if (this.currentDirection.dx === 0 && this.currentDirection.dy === 0 && this.isPannable()) {
         this.currentDirection = this.calculateInitialDirection(position);
-        // If still (0,0) after trying to get initial direction, and it's pannable, it might be stuck.
-        // This usually implies a bug in calculateInitialDirection or isPannable state.
-        // For now, we proceed; if it remains (0,0), no movement will occur.
-        if(this.currentDirection.dx === 0 && this.currentDirection.dy === 0 && this.isPannable()) return; 
+        // If still (0,0) after trying to get initial direction, and it's pannable, return position.
+        if(this.currentDirection.dx === 0 && this.currentDirection.dy === 0 && this.isPannable()) return position;
     }
     
     const pixelsPerSecond = this.speedLevel * this.viewportSize.width;
@@ -172,8 +170,8 @@ export class RandomDirectionStroll extends Stroll {
   }
 
   public afterUpdateSettings(
-    sceneDefiningPropertyChanged: bool,
-    viewportChanged: bool,
+    sceneDefiningPropertyChanged: boolean,
+    viewportChanged: boolean,
     newViewportSize?: Dimensions,
     newZoomLevel?: number,
     newSpeedLevel?: number,
