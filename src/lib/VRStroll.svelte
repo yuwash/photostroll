@@ -1,24 +1,33 @@
 <script>
-  import { onMount, onDestroy, tick as svelteTick } from 'svelte';
-  import { writable } from 'svelte/store';
+  import { onMount, onDestroy } from 'svelte';
+  import { Canvas, T } from '@threlte/core';
+  import { XR, useXR } from '@threlte/xr';
+  import { useTexture } from '@threlte/extras';
+  import * as THREE from 'three';
 
   export let imageSrc;
-  export let photoOriginalDimensions;
-  export let zoomLevel;
-  export let speedLevel;
   export let strollInstance;
   export let onExit;
   export let vrStrollComponent;
 
-  let sceneEl;
-  let planeEl;
+  let planeMesh;
   let planeWidth = 4;
   let planeHeight = 2.25;
   let animationFrameId;
   let sceneLoaded = false;
 
+  // Load texture reactively using Threlte's useTexture
+  const texture = useTexture(imageSrc, {
+    transform: (tex) => {
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+  });
+
   function tick(currentTime) {
-    if (sceneEl && strollInstance) {
+    if (strollInstance && $texture) {
       const box = strollInstance.getViewportInOriginalImageScale();
       const imgSize = strollInstance.getOriginalImageSize();
       
@@ -28,19 +37,10 @@
         const ox = box.x / imgSize.width;
         const oy = 1 - (box.y + box.height) / imgSize.height;
 
-        // Check for valid numbers to prevent A-Frame errors
         if (isFinite(rx) && isFinite(ry) && isFinite(ox) && isFinite(oy)) {
-          if (!planeEl) planeEl = sceneEl.querySelector('#vr-plane');
-          
-          if (planeEl) {
-            planeEl.setAttribute('material', {
-              src: '#vr-photo',
-              repeat: { x: rx, y: ry },
-              offset: { x: ox, y: oy },
-              shader: 'flat',
-              side: 'double'
-            });
-          }
+          $texture.repeat.set(rx, ry);
+          $texture.offset.set(ox, oy);
+          $texture.needsUpdate = true;
         }
       }
     }
@@ -53,7 +53,6 @@
   }
 
   onMount(() => {
-    // Set the component reference for parent access
     vrStrollComponent = {
       tick,
       handleExitVR
@@ -61,20 +60,9 @@
 
     sceneLoaded = true;
 
-    if (sceneEl) {
-      sceneEl.addEventListener('exit-vr', handleExitVR);
-    }
-
-    // Update plane dimensions on mount
     const aspect = window.innerWidth / window.innerHeight;
     planeWidth = 4;
     planeHeight = 4 / aspect;
-
-    return () => {
-      if (sceneEl) {
-        sceneEl.removeEventListener('exit-vr', handleExitVR);
-      }
-    };
   });
 
   onDestroy(() => {
@@ -86,35 +74,22 @@
 
 <div class="vr-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
 {#if sceneLoaded}
-  <a-scene 
-    bind:this={sceneEl} 
-    vr-mode-ui="enabled: true"
-    embedded
-  >
-    <a-assets>
-      <img id="vr-photo" src={$imageSrc} alt="VR source" crossorigin="anonymous" />
-    </a-assets>
+  <Canvas>
+    <XR>
+      <!-- Ambient/Background setup -->
+      <T.Color attach="background" args={['#aaaaaa']} />
 
-    <!-- Fixed camera to ignore user movement/looking if requested, 
-          but usually in VR you want to look at the plane. 
-          Setting look-controls to false as per "ignoring movement of the user" 
-    -->
-    <a-entity 
-      camera 
-      look-controls="enabled: false" 
-      wasd-controls="enabled: false" 
-      position="0 1.6 0"
-    >
-      <a-plane
-        id="vr-plane"
-        position="0 0 -2"
-        width={planeWidth}
-        height={planeHeight}
-        material="shader: flat; side: double; color: #fff; src: #vr-photo"
-      ></a-plane>
-    </a-entity>
-    
-    <a-sky color="#aaa"></a-sky>
-  </a-scene>
+      <!-- Camera container fixed at head height, looking forward -->
+      <T.PerspectiveCamera position={[0, 1.6, 0]} makeDefault>
+        <!-- Plane positioned relative to camera view -->
+        <T.Mesh position={[0, 0, -2]} bind:ref={planeMesh}>
+          <T.PlaneGeometry args={[planeWidth, planeHeight]} />
+          {#if $texture}
+            <T.MeshBasicMaterial map={$texture} side={THREE.DoubleSide} />
+          {/if}
+        </T.Mesh>
+      </T.PerspectiveCamera>
+    </XR>
+  </Canvas>
 {/if}
 </div>
