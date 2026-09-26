@@ -14,14 +14,14 @@ export interface BoundingBox extends Position {
 }
 
 export class Stroll {
-  private viewportSize: Dimensions;
-  private originalImageSize: Dimensions;
-  private zoomLevel: number;
-  private speedLevel: number; // screen widths per second
+  protected viewportSize: Dimensions;
+  protected originalImageSize: Dimensions;
+  protected zoomLevel: number;
+  protected speedLevel: number; // screen widths per second
 
-  private scaledSize: Dimensions;
-  private currentPosition: Position;
-  private currentDirection: { dx: number; dy: number };
+  protected scaledSize: Dimensions;
+  protected currentPosition: Position;
+  protected currentDirection: { dx: number; dy: number };
 
   constructor(
     viewportSize: Dimensions,
@@ -34,6 +34,7 @@ export class Stroll {
     this.zoomLevel = Math.max(1, zoomLevel);
     this.speedLevel = speedLevel;
 
+    this.currentDirection = { dx: 0, dy: 0 };
     this.scaledSize = this.calculateScaledSize();
     this.currentPosition = this.calculateInitialPosition();
   }
@@ -130,8 +131,8 @@ export class Stroll {
   }
 
   public afterUpdateSettings(
-    sceneDefiningPropertyChanged: bool,
-    viewportChanged: bool,
+    sceneDefiningPropertyChanged: boolean,
+    viewportChanged: boolean,
     newViewportSize?: Dimensions,
     newZoomLevel?: number,
     newSpeedLevel?: number,

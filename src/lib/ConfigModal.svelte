@@ -1,26 +1,27 @@
-<script>
+<script lang="ts">
   import { base } from '$app/paths';
-  import { RandomDirectionStroll } from './randomDirectionStroll.ts';
-  import { HorizontalSweepStroll } from './horizontalSweepStroll.ts';
-  import { strollPatterns } from './patterns.ts';
+  import { RandomDirectionStroll } from './randomDirectionStroll';
+  import { HorizontalSweepStroll } from './horizontalSweepStroll';
+  import { strollPatterns } from './patterns';
+  import type { Writable } from 'svelte/store';
 
-  let fileInputRef;
+  let fileInputRef: HTMLInputElement;
   let thumbImgWidth = 150;
   let thumbImgHeight = 150;
   let viewportRect = { x: 0, y: 0, width: 0, height: 0 };
 
   // Exported props are now the Svelte store objects themselves
-  export let handleExplore;
-  export let handleFileChange;
-  export let imageSrc; // This is now the writable store
-  export let photoOriginalDimensions; // This is now the writable store
-  export let zoomLevel; // This is now the writable store
-  export let speedLevel; // This is now the writable store
-  export let strollPattern; // This is now the writable store
+  export let handleExplore: ((e: Event) => void) | undefined = undefined;
+  export let handleFileChange: ((e: Event) => void) | undefined = undefined;
+  export let imageSrc: Writable<string | null>;
+  export let photoOriginalDimensions: Writable<{ width: number; height: number }>;
+  export let zoomLevel: Writable<number>;
+  export let speedLevel: Writable<number>;
+  export let strollPattern: Writable<string>;
 
-  export let canExplore; // This is now the writable store
-  export let isPhotoLoaded; // Track if the file is user-provided
-  export let strollInstance; // NEW: Accept strollInstance as a prop
+  export let canExplore: Writable<boolean>;
+  export let isPhotoLoaded: Writable<boolean>;
+  export let strollInstance: any;
 
   $: {
     if ($imageSrc && $photoOriginalDimensions && $strollPattern) {
@@ -48,21 +49,21 @@
     }
   }
 
-  let animationFrameId; // ID for requestAnimationFrame
-  let lastTickTime; // Timestamp of the last animation frame
+  let animationFrameId: number | null = null;
+  let lastTickTime: number | null = null;
 
   export const MIN_ZOOM = 1.5;
   export const MAX_ZOOM = 12;
   export const MIN_SPEED = 0.05;
   export const MAX_SPEED = 0.4;
 
-  const handleFileChangeInternal = (event) => {
+  const handleFileChangeInternal = (event: Event) => {
     if(handleFileChange) {
       handleFileChange(event);
     }
   }
 
-  const handleExploreInternal = (event) => {
+  const handleExploreInternal = (event: Event) => {
     if(handleExplore) {
       handleExplore(event);
     }
@@ -73,7 +74,7 @@
    * It calculates the delta time, updates the Stroll instance, and updates the viewportRect.
    * @param {DOMHighResTimeStamp} currentTime - The current time provided by requestAnimationFrame.
    */
-  function tick(currentTime) {
+  function tick(currentTime: number) {
     if (!lastTickTime) {
       lastTickTime = currentTime; // Initialize lastTickTime on the first frame
     }
@@ -140,9 +141,9 @@
 .viewport-rect {
   position: relative;
   border: 1px solid red;
-  boxSizing: border-box; /* Ensure border is included in width/height */
-  pointerEvents: none; /* Make sure it doesn't interfere with clicks */
-  zIndex: 10; /* Ensure it's above the image */
+  box-sizing: border-box; /* Ensure border is included in width/height */
+  pointer-events: none; /* Make sure it doesn't interfere with clicks */
+  z-index: 10; /* Ensure it's above the image */
 }
 </style>
 
@@ -168,7 +169,7 @@
               class="viewport-rect"
               aria-hidden="true"
               style="left: {viewportRect.x}px; top: {viewportRect.y}px; width: {viewportRect.width}px; height: {viewportRect.height}px; transform: translateY({-thumbImgHeight}px); margin-bottom: -{viewportRect.height}px;"
-            />
+            ></div>
           {/if}
         </div>
       </div>
@@ -185,7 +186,7 @@
           step={0.5}
           bind:value={$zoomLevel}
           class="width-100"
-          on:input={(e) => zoomLevel.set(parseFloat(e.target.value))}
+          on:input={(e) => zoomLevel.set(parseFloat((e.target as HTMLInputElement).value))}
           aria-label={`Zoom level ${$zoomLevel}x`}
         />
       </div>
@@ -202,7 +203,7 @@
           step={0.05}
           bind:value={$speedLevel}
           class="width-100"
-          on:input={(e) => speedLevel.set(parseFloat(e.target.value))}
+          on:input={(e) => speedLevel.set(parseFloat((e.target as HTMLInputElement).value))}
           aria-label={`Movement speed ${$speedLevel.toFixed(1)} screen widths per second`}
         />
       </div>

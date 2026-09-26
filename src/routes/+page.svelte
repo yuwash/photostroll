@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import 'bulma/css/bulma.min.css';
 
   import { base } from '$app/paths';
@@ -6,68 +6,72 @@
   import { onMount, onDestroy } from 'svelte';
   import ConfigModal from '../lib/ConfigModal.svelte';
   import StrollComponent from '../lib/Stroll.svelte';
-  import { RandomDirectionStroll } from '../lib/randomDirectionStroll.ts';
-  import { HorizontalSweepStroll } from '../lib/horizontalSweepStroll.ts';
-  import { strollPatterns } from '../lib/patterns.ts';
+  import { RandomDirectionStroll } from '../lib/randomDirectionStroll';
+  import { HorizontalSweepStroll } from '../lib/horizontalSweepStroll';
+  import { strollPatterns } from '../lib/patterns';
 
   // Define writable stores for the application's state
   const placeholderUrl = base + "/placeholder.svg";
-  const imageSrc = writable(null);
-  const photoOriginalDimensions = writable({ width: 150, height: 150 });
-  const zoomLevel = writable(1.5);
-  const speedLevel = writable(0.1);
-  const canExplore = writable(false);
-  const isExploring = writable(false);
-  const isPhotoLoaded = writable(false);
-  const strollPattern = writable(strollPatterns[0]);
+  const imageSrc = writable<string | null>(null);
+  const photoOriginalDimensions = writable<{ width: number; height: number }>({ width: 150, height: 150 });
+  const zoomLevel = writable<number>(1.5);
+  const speedLevel = writable<number>(0.1);
+  const canExplore = writable<boolean>(false);
+  const isExploring = writable<boolean>(false);
+  const isPhotoLoaded = writable<boolean>(false);
+  const strollPattern = writable<string>(strollPatterns[0]);
 
   // Variable to hold the Stroll instance
-  let strollInstance;
+  let strollInstance: any;
 
   // Function to handle file input change
-  const handleFileChange = (event) => {
-    if (event.target.files && event.target.files[0]) {
+  const handleFileChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
       isPhotoLoaded.set(true);
-      loadFile(event.target.files[0]);
+      loadFile(target.files[0]);
     }
   };
 
-  const loadFile = (file) => {
+  const loadFile = (file: File) => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        imageSrc.set(e.target.result);
-        const img = new Image();
-        img.onload = () => {
-          photoOriginalDimensions.set({ width: img.width, height: img.height });
-          canExplore.set(true); // Enable explore once photo is loaded
+        if (e.target && e.target.result) {
+          const resultStr = e.target.result as string;
+          imageSrc.set(resultStr);
+          const img = new Image();
+          img.onload = () => {
+            photoOriginalDimensions.set({ width: img.width, height: img.height });
+            canExplore.set(true); // Enable explore once photo is loaded
 
-          // Instantiate Stroll object here
-          // Initial viewport size is 0,0; StrollComponent will update it once mounted
-          const initialZoom = $zoomLevel;
-          const initialSpeed = $speedLevel;
-          if ($strollPattern === 'Random Direction') {
-            strollInstance = new RandomDirectionStroll(
-              { width: 0, height: 0 }, // Placeholder viewport size
-              { width: img.width, height: img.height },
-              initialZoom,
-              initialSpeed
-            );
-          } else if ($strollPattern === 'Horizontal Sweep') {
-            strollInstance = new HorizontalSweepStroll(
-              { width: 0, height: 0 }, // Placeholder viewport size
-              { width: img.width, height: img.height },
-              initialZoom,
-              initialSpeed
-            );
-          }
-        };
-        img.src = e.target.result;
+            // Instantiate Stroll object here
+            // Initial viewport size is 0,0; StrollComponent will update it once mounted
+            const initialZoom = $zoomLevel;
+            const initialSpeed = $speedLevel;
+            if ($strollPattern === 'Random Direction') {
+              strollInstance = new RandomDirectionStroll(
+                { width: 0, height: 0 }, // Placeholder viewport size
+                { width: img.width, height: img.height },
+                initialZoom,
+                initialSpeed
+              );
+            } else if ($strollPattern === 'Horizontal Sweep') {
+              strollInstance = new HorizontalSweepStroll(
+                { width: 0, height: 0 }, // Placeholder viewport size
+                { width: img.width, height: img.height },
+                initialZoom,
+                initialSpeed
+              );
+            }
+          };
+          img.src = resultStr;
+        }
       };
       reader.readAsDataURL(file);
     } else {
       imageSrc.set(null);
-      photoOriginalDimensions.set(null);
+      photoOriginalDimensions.set({ width: 0, height: 0 });
       canExplore.set(false);
       strollInstance = null; // Clear stroll instance when no file is selected
     }
@@ -99,8 +103,10 @@
 
   // Function to handle fullscreen change events
   function handleFullscreenChange() {
-    // Update isExploring based on whether an element is currently in fullscreen mode
-    isExploring.set(!!document.fullscreenElement);
+    // Only update isExploring to false if user exited fullscreen
+    if (!document.fullscreenElement) {
+      isExploring.set(false);
+    }
   }
 
   // Lifecycle hooks for fullscreen event listener
