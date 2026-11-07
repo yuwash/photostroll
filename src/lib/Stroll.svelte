@@ -18,7 +18,6 @@
   // Internal reactive state for the Stroll component
   const viewportSize = writable<{ width: number; height: number }>({ width: 0, height: 0 });
   const currentBoundingBox = writable<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
-  const imageOffset = writable<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Cardboard mode state
   let isCardboardMode = false;
@@ -165,10 +164,6 @@
         );
         // Immediately update the bounding box after settings change to reflect new state
         currentBoundingBox.set(strollInstance.getBoundingBox());
-        imageOffset.set({
-          x: $currentBoundingBox.x,
-          y: $currentBoundingBox.y,
-        });
       }
 
       // Start animation if not already running and strollInstance is present
@@ -269,7 +264,7 @@
               width: {$currentBoundingBox.width}px;
               height: {$currentBoundingBox.height}px;
               max-width: initial;
-              transform: translate({$imageOffset.x}px, {$imageOffset.y}px);
+              transform: translate({$currentBoundingBox.x}px, {$currentBoundingBox.y}px);
             "
           />
         </div>
@@ -285,7 +280,7 @@
               width: {$currentBoundingBox.width}px;
               height: {$currentBoundingBox.height}px;
               max-width: initial;
-              transform: translate({$imageOffset.x - rightEyeOffsetShift}px, {$imageOffset.y}px);
+              transform: translate({$currentBoundingBox.x - rightEyeOffsetShift}px, {$currentBoundingBox.y}px);
             "
           />
         </div>
@@ -299,7 +294,7 @@
           width: {$currentBoundingBox.width}px;
           height: {$currentBoundingBox.height}px;
           max-width: initial;
-          transform: translate({$imageOffset.x}px, {$imageOffset.y}px);
+          transform: translate({$currentBoundingBox.x}px, {$currentBoundingBox.y}px);
         "
       />
     {/if}
