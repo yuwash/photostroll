@@ -20,6 +20,7 @@
   const isExploring = writable<boolean>(false);
   const isPhotoLoaded = writable<boolean>(false);
   const strollPattern = writable<string>(strollPatterns[0]);
+  const cardboardOverlapRatio = writable<number>(0);
 
   // Variable to hold the Stroll instance
   let strollInstance: any;
@@ -147,6 +148,7 @@
     photoOriginalDimensions={photoOriginalDimensions}
     zoomLevel={zoomLevel}
     speedLevel={speedLevel}
+    cardboardOverlapRatio={cardboardOverlapRatio}
     onExit={handleExitStroll}
     strollInstance={strollInstance}
   />
@@ -157,6 +159,7 @@
     photoOriginalDimensions={photoOriginalDimensions}
     zoomLevel={zoomLevel}
     speedLevel={speedLevel}
+    cardboardOverlapRatio={cardboardOverlapRatio}
     canExplore={canExplore}
     handleExplore={handleExplore}
     handleFileChange={handleFileChange}
