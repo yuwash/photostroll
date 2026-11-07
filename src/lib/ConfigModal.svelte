@@ -18,6 +18,7 @@
   export let zoomLevel: Writable<number>;
   export let speedLevel: Writable<number>;
   export let strollPattern: Writable<string>;
+  export let cardboardOverlapRatio: Writable<number>;
 
   export let canExplore: Writable<boolean>;
   export let isPhotoLoaded: Writable<boolean>;
@@ -223,6 +224,23 @@
             {/each}
           </select>
         </div>
+      </div>
+
+      <div class="card-content">
+        <label for="overlap-slider" class="is-flex is-align-items-center mb-1">
+          <span class="mr-1">👓</span> Cardboard Mode Overlap Ratio: {Math.round($cardboardOverlapRatio * 100)}%
+        </label>
+        <input
+          type="range"
+          id="overlap-slider"
+          min={0}
+          max={1}
+          step={0.05}
+          bind:value={$cardboardOverlapRatio}
+          class="width-100"
+          on:input={(e) => cardboardOverlapRatio.set(parseFloat((e.target as HTMLInputElement).value))}
+          aria-label={`Cardboard mode overlap ratio ${Math.round($cardboardOverlapRatio * 100)} percent`}
+        />
       </div>
 
       <div class="card-content">
