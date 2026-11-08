@@ -143,7 +143,7 @@
   // In general: effectiveVirtualWidth = eyeWidth * (2 - r) = viewportSize.width * (1 - r / 2).
   $: effectiveVirtualViewport = {
     width: isCardboardMode
-      ? $viewportSize.width * (1 - ($cardboardOverlapRatio ?? 0) / 2)
+      ? ($viewportSize.width / 2) * (1 + ($cardboardOverlapRatio ?? 0))
       : $viewportSize.width,
     height: $viewportSize.height
   };
